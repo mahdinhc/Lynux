@@ -1,0 +1,156 @@
+{
+    "type": "directory",
+    "name": "/",
+    "children": {
+        "bin": {
+            "type": "directory",
+            "name": "bin",
+            "children": [
+            ]
+        },
+        "boot": {
+            "type": "directory",
+            "name": "boot",
+            "children": [
+            ]
+        },
+        "dev": {
+            "type": "directory",
+            "name": "dev",
+            "children": [
+            ]
+        },
+        "etc": {
+            "type": "directory",
+            "name": "etc",
+            "children": [
+            ]
+        },
+        "home": {
+            "type": "directory",
+            "name": "home",
+            "children": {
+                "user": {
+                    "type": "directory",
+                    "name": "user",
+                    "children": {
+                        "Documents": {
+                            "type": "directory",
+                            "name": "Documents",
+                            "children": [
+                            ]
+                        },
+                        "Downloads": {
+                            "type": "directory",
+                            "name": "Downloads",
+                            "children": [
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "lib": {
+            "type": "directory",
+            "name": "lib",
+            "children": [
+            ]
+        },
+        "media": {
+            "type": "directory",
+            "name": "media",
+            "children": [
+            ]
+        },
+        "mnt": {
+            "type": "directory",
+            "name": "mnt",
+            "children": [
+            ]
+        },
+        "opt": {
+            "type": "directory",
+            "name": "opt",
+            "children": [
+            ]
+        },
+        "proc": {
+            "type": "directory",
+            "name": "proc",
+            "children": [
+            ]
+        },
+        "root": {
+            "type": "directory",
+            "name": "root",
+            "children": [
+            ]
+        },
+        "run": {
+            "type": "directory",
+            "name": "run",
+            "children": [
+            ]
+        },
+        "sbin": {
+            "type": "directory",
+            "name": "sbin",
+            "children": [
+            ]
+        },
+        "srv": {
+            "type": "directory",
+            "name": "srv",
+            "children": [
+            ]
+        },
+        "tmp": {
+            "type": "directory",
+            "name": "tmp",
+            "children": [
+            ]
+        },
+        "usr": {
+            "type": "directory",
+            "name": "usr",
+            "children": {
+                "bin": {
+                    "type": "directory",
+                    "name": "bin",
+                    "children": [
+                    ]
+                },
+                "lib": {
+                    "type": "directory",
+                    "name": "lib",
+                    "children": [
+                    ]
+                },
+                "local": {
+                    "type": "directory",
+                    "name": "local",
+                    "children": [
+                    ]
+                }
+            }
+        },
+        "var": {
+            "type": "directory",
+            "name": "var",
+            "children": {
+                "log": {
+                    "type": "directory",
+                    "name": "log",
+                    "children": [
+                    ]
+                },
+                "tmp": {
+                    "type": "directory",
+                    "name": "tmp",
+                    "children": [
+                    ]
+                }
+            }
+        }
+    }
+}

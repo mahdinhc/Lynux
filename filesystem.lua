@@ -37,17 +37,28 @@ function filesystem.save(fs)
     love.filesystem.write("filesystem.json", data)
 end
 
--- Load the file system from disk (or create a new one if it does not exist).
+-- Load the file system from disk (or load default from "data/filesystem.json" if it does not exist).
 function filesystem.load()
     local fs = { name = "/", type = "directory", parent = nil, children = {} }
+    local data, fsLoaded
+
     if love.filesystem.getInfo("filesystem.json") then
-        local data = love.filesystem.read("filesystem.json")
-        local fsLoaded = json.decode(data)
+        data = love.filesystem.read("filesystem.json")
+        fsLoaded = json.decode(data)
+        if fsLoaded then
+            fs = fsLoaded
+            filesystem.restore(fs, nil)
+        end
+    elseif love.filesystem.getInfo("data/filesystem.json") then
+        -- Load default file system data if no saved filesystem exists.
+        data = love.filesystem.read("data/filesystem.json")
+        fsLoaded = json.decode(data)
         if fsLoaded then
             fs = fsLoaded
             filesystem.restore(fs, nil)
         end
     end
+
     return fs
 end
 
@@ -77,7 +88,6 @@ function filesystem.getPath(node)
         return table.concat(parts, "/")
     end
 end
-
 
 -- Generate a tree view (array of strings) for a directory.
 function filesystem.generateTree(node, prefix)

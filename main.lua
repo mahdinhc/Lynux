@@ -7,7 +7,7 @@ local RouletteApp = require("roulette")
 local TextEditor = require("texteditor")
 local DinoApp = require("dino")
 local filesystemModule = require("filesystem")
-local Demoji = require("demoji")  -- require Demoji module
+-- local Demoji = require("demoji")  -- require Demoji module
 
 effect = moonshine(moonshine.effects.scanlines).chain(moonshine.effects.crt)
 effect.scanlines.opacity = 0.6
@@ -86,7 +86,7 @@ function love.load()
     openApps = {}  -- List of open windows
 
     -- Instantiate Demoji.
-    demojiInstance = Demoji.new()
+    -- demojiInstance = Demoji.new()
 end
 
 function love.update(dt)
@@ -95,13 +95,13 @@ function love.update(dt)
             window.instance:update(dt)
         end
     end
-    demojiInstance:update(dt)
+    -- demojiInstance:update(dt)
 end
 
 function love.draw()
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
-	effect(function()
+	-- effect(function()
     love.graphics.setFont(font)
     love.graphics.clear(0.2, 0.3, 0.4)
     
@@ -187,16 +187,16 @@ function love.draw()
     end
 
     -- Draw Demoji on top.
-    demojiInstance:draw()
-	end)
+    -- demojiInstance:draw()
+	-- end)
 end
 
 function love.mousepressed(x, y, button)
     if button == 1 then
         -- First, dispatch to Demoji.
-        if demojiInstance:mousepressed(x, y, button) then
-            return  -- if Demoji consumed the click, don't process further.
-        end
+        -- if demojiInstance:mousepressed(x, y, button) then
+            -- return  -- if Demoji consumed the click, don't process further.
+        -- end
 
         local resizeHandleSize = 20
         for _, window in ipairs(openApps) do
@@ -323,14 +323,14 @@ function love.mousemoved(x, y, dx, dy)
         draggingWindow.y = y - dragOffsetY
     end
     -- Pass mouse movement to Demoji.
-    demojiInstance:mousemoved(x, y, dx, dy)
+    -- demojiInstance:mousemoved(x, y, dx, dy)
 end
 
 function love.mousereleased(x, y, button)
     if button == 1 then
         draggingWindow = nil
         resizingWindow = nil
-        demojiInstance:mousereleased(x, y, button)
+        -- demojiInstance:mousereleased(x, y, button)
     end
 end
 
