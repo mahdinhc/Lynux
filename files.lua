@@ -1,5 +1,6 @@
 -- files.lua
 local filesystem = require("filesystem")
+local TextEditor = require("texteditor")
 local loveTimer = love.timer  -- alias for convenience
 
 local FilesApp = {}
@@ -182,12 +183,33 @@ function FilesApp:openSelectedEntry()
       if node and node.type == "directory" then
          self.cwd = node
          self:updateFileList()
-      else
-         -- For files, you could add code here to view or open them.
-         print("File selected: " .. entry)
+      elseif node and node.type == "file" then
+         local TextEditor = require("texteditor")
+         print(entry, node)
+         local editor = TextEditor.new(filesystem.getPath(node), node)
+         if node.content and node.content ~= "" then
+            editor.lines = {}
+            for line in node.content:gmatch("([^\n]*)\n?") do
+               table.insert(editor.lines, line)
+            end
+         else
+            editor.lines = {""}
+         end
+         editor.filename = entry
+         editor.fileNode = node  -- This should now stick.
+         -- Set the TextEditor app's instance to your custom editor
+         for i, app in ipairs(apps) do
+            if app.name == "TextEditor" then
+               app.instance = editor
+               toggleApp(app)
+               break
+            end
+         end
       end
    end
 end
+
+
 
 -- Handle mouse wheel for scrolling the file list.
 function FilesApp:wheelmoved(x, y)

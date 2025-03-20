@@ -2,6 +2,16 @@
 local filesystem = require("filesystem")
 local TerminalCommands = {}
 
+-- Helper function for printing output (if not already defined in self)
+function TerminalCommands.print(self, text)
+    table.insert(self.rawLines, text)
+end
+
+-- Helper: recursively remove a directory from parent's children.
+local function removeDirectoryRecursively(parent, name)
+    parent.children[name] = nil
+end
+
 -- Process a command string. 'self' is the Terminal instance.
 function TerminalCommands.process(self, command)
     local args = {}
@@ -15,8 +25,8 @@ function TerminalCommands.process(self, command)
         self:print("Available commands:")
         self:print("  help, clear/cls, echo <text>")
         self:print("  ls, pwd, cd <dir>, mkdir <dir>")
-        self:print("  touch <file>, rm <file|dir>, cat <file>")
-        self:print("  tree, date, time, version, uname")
+        self:print("  touch <file>, rm <file|dir>, rmall <dir>, mv <src> <dst>")
+        self:print("  cat <file>, tree, date, time, version, uname")
     elseif cmd == "clear" or cmd == "cls" then
         self.rawLines = {}
         self.scrollOffset = 0
@@ -109,6 +119,50 @@ function TerminalCommands.process(self, command)
                 end
             end
         end
+    elseif cmd == "rmall" then
+        if #args < 2 then
+            self:print("Usage: rmall <directory>")
+        else
+            local name = args[2]
+            local node = self.cwd.children[name]
+            if not node then
+                self:print("Not found: " .. name)
+            else
+                if node.type == "directory" then
+                    -- Remove directory recursively (ignoring children)
+                    self.cwd.children[name] = nil
+                    filesystem.save(self.filesystem)
+                    self:print("Removed directory recursively: " .. name)
+                else
+                    self.cwd.children[name] = nil
+                    filesystem.save(self.filesystem)
+                    self:print("Removed file: " .. name)
+                end
+            end
+        end
+    elseif cmd == "mv" then
+        if #args < 3 then
+            self:print("Usage: mv <source> <destination>")
+        else
+            local src = args[2]
+            local dst = args[3]
+            local node = self.cwd.children[src]
+            if not node then
+                self:print("Source not found: " .. src)
+            else
+                -- Check if destination exists in current directory.
+                if self.cwd.children[dst] then
+                    self:print("Destination already exists: " .. dst)
+                else
+                    -- Rename or move the node by updating its key in the parent's children table.
+                    self.cwd.children[src] = nil
+                    node.name = dst
+                    self.cwd.children[dst] = node
+                    filesystem.save(self.filesystem)
+                    self:print("Moved/Renamed " .. src .. " to " .. dst)
+                end
+            end
+        end
     elseif cmd == "cat" then
         if #args < 2 then
             self:print("Usage: cat <filename>")
@@ -144,8 +198,6 @@ function TerminalCommands.process(self, command)
         self:print("Terminal version 1.0")
     elseif cmd == "uname" then
         self:print("Simulated OS: 2DPrototype OS")
-    -- elseif cmd == "tokio" then
-        -- self:print("hello              world")
     else
         self:print("Unknown command: " .. command)
     end

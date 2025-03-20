@@ -146,6 +146,7 @@ function love.draw()
     -- Draw open app windows.
     for _, window in ipairs(openApps) do
         if not window.minimized then
+			love.graphics.setFont(font)
             love.graphics.setColor(0.8, 0.8, 0.8)
             love.graphics.rectangle("fill", window.x, window.y, window.width, window.height)
             love.graphics.setColor(0, 0, 0)
@@ -373,15 +374,56 @@ function toggleApp(app)
         found.minimized = not found.minimized
         setFocus(found)
     else
-        app.instance = app.module.new()
-        local screenWidth = love.graphics.getWidth()
-        local screenHeight = love.graphics.getHeight()
-        local windowWidth = 500
-        local windowHeight = 300
-        local x = (screenWidth - windowWidth) / 2
-        local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
-        local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
-        table.insert(openApps, newWindow)
-        setFocus(newWindow)
+        -- For TextEditor, check if an instance already exists:
+        if app.name == "TextEditor" and app.instance then
+            -- Do not create a new instance; just open the existing one.
+            local screenWidth = love.graphics.getWidth()
+            local screenHeight = love.graphics.getHeight()
+            local windowWidth = 500
+            local windowHeight = 300
+            local x = (screenWidth - windowWidth) / 2
+            local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
+            local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
+            table.insert(openApps, newWindow)
+            setFocus(newWindow)
+        else
+            app.instance = app.module.new()
+            local screenWidth = love.graphics.getWidth()
+            local screenHeight = love.graphics.getHeight()
+            local windowWidth = 500
+            local windowHeight = 300
+            local x = (screenWidth - windowWidth) / 2
+            local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
+            local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
+            table.insert(openApps, newWindow)
+            setFocus(newWindow)
+        end
     end
 end
+
+
+-- function toggleApp(app)
+    -- local found = nil
+    -- for _, window in ipairs(openApps) do
+        -- if window.app == app then
+            -- found = window
+            -- break
+        -- end
+    -- end
+
+    -- if found then
+        -- found.minimized = not found.minimized
+        -- setFocus(found)
+    -- else
+        -- app.instance = app.module.new()
+        -- local screenWidth = love.graphics.getWidth()
+        -- local screenHeight = love.graphics.getHeight()
+        -- local windowWidth = 500
+        -- local windowHeight = 300
+        -- local x = (screenWidth - windowWidth) / 2
+        -- local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
+        -- local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
+        -- table.insert(openApps, newWindow)
+        -- setFocus(newWindow)
+    -- end
+-- end

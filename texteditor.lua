@@ -1,24 +1,26 @@
 -- texteditor.lua
+local filesystem = require("filesystem")
+
 local TextEditor = {}
 TextEditor.__index = TextEditor
 
-function TextEditor.new()
+function TextEditor.new(filename, fileNode)
+	print(filename, fileNode)
     local self = setmetatable({}, TextEditor)
-    -- Starting content: one empty line.
-    self.lines = {""}
-    self.cursorX = 1  -- Position in current line (character index)
-    self.cursorY = 1  -- Current line number
+    self.lines = {""}               -- Starting content: one empty line.
+    self.cursorX = 1                -- Position in current line (character index)
+    self.cursorY = 1                -- Current line number
     self.font = love.graphics.newFont(14)
     self.blinkTimer = 0
     self.cursorVisible = true
     self.scrollOffset = 0
     self.lineHeight = self.font:getHeight()
-    self.filename = "untitled.txt"
-    -- We'll store the last drawn editor height (set during draw) for scrolling calculations.
-    self.editorHeight = 300
+    self.filename = filename or "untitled.txt"
+    self.fileNode = fileNode or nil -- Reference to the file node in the file system.
+    self.editorHeight = 300         -- For scrolling calculations.
+    self.dirty = false              -- Tracks if there are unsaved changes.
     return self
 end
-
 function TextEditor:update(dt)
     self.blinkTimer = self.blinkTimer + dt
     if self.blinkTimer >= 0.5 then
@@ -28,21 +30,31 @@ function TextEditor:update(dt)
 end
 
 function TextEditor:draw(x, y, width, height)
-    -- Save the editor height for use in wheelmoved.
     self.editorHeight = height
-
-    -- Draw background and border.
+    -- Draw editor background and border.
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("fill", x, y, width, height)
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("line", x, y, width, height)
 
-    -- Set scissor so text doesn't draw outside the editor.
-    love.graphics.setScissor(x, y, width, height)
-    local currentY = y - self.scrollOffset
-
-	love.graphics.setFont(self.font)
-    -- Draw each line.
+    -- Draw header bar with file full path.
+    local headerHeight = 20
+    local filePath = self.fileNode and filesystem.getPath(self.fileNode) or self.filename
+    if self.dirty then
+        love.graphics.setColor(1, 0, 0)  -- Red if unsaved.
+    else
+        love.graphics.setColor(0, 0, 0)  -- Black if saved.
+    end
+    love.graphics.printf(filePath, x + 5, y + 2, width - 10, "left")
+    
+    -- Draw a separator line below the header.
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.line(x, y + headerHeight, x + width, y + headerHeight)
+    
+    -- Set scissor to restrict drawing to the text area.
+    love.graphics.setScissor(x, y + headerHeight, width, height - headerHeight)
+    local currentY = y + headerHeight - self.scrollOffset
+    love.graphics.setFont(self.font)
     for i, line in ipairs(self.lines) do
         love.graphics.print(line, x + 5, currentY)
         currentY = currentY + self.lineHeight
@@ -52,7 +64,7 @@ function TextEditor:draw(x, y, width, height)
     if self.cursorVisible then
         local lineText = self.lines[self.cursorY] or ""
         local cx = x + 5 + self.font:getWidth(lineText:sub(1, self.cursorX - 1))
-        local cy = y + (self.cursorY - 1) * self.lineHeight - self.scrollOffset
+        local cy = y + headerHeight + (self.cursorY - 1) * self.lineHeight - self.scrollOffset
         love.graphics.line(cx, cy, cx, cy + self.lineHeight)
     end
     love.graphics.setScissor()
@@ -60,10 +72,10 @@ function TextEditor:draw(x, y, width, height)
     -- Draw vertical scrollbar if needed.
     local totalLines = #self.lines
     local totalHeight = totalLines * self.lineHeight
-    if totalHeight > height then
-        local thumbHeight = (height / totalHeight) * height
-        local maxScroll = totalHeight - height
-        local thumbY = y + (self.scrollOffset / maxScroll) * (height - thumbHeight)
+    if totalHeight > (height - headerHeight) then
+        local thumbHeight = ((height - headerHeight) / totalHeight) * (height - headerHeight)
+        local maxScroll = totalHeight - (height - headerHeight)
+        local thumbY = y + headerHeight + (self.scrollOffset / maxScroll) * ((height - headerHeight) - thumbHeight)
         love.graphics.setColor(0.7, 0.7, 0.7)
         love.graphics.rectangle("fill", x + width - 10, thumbY, 5, thumbHeight)
     end
@@ -75,6 +87,7 @@ function TextEditor:textinput(t)
     local after = line:sub(self.cursorX)
     self.lines[self.cursorY] = before .. t .. after
     self.cursorX = self.cursorX + #t
+    self.dirty = true  -- Mark file as modified.
 end
 
 function TextEditor:keypressed(key)
@@ -83,12 +96,14 @@ function TextEditor:keypressed(key)
             local line = self.lines[self.cursorY]
             self.lines[self.cursorY] = line:sub(1, self.cursorX - 2) .. line:sub(self.cursorX)
             self.cursorX = self.cursorX - 1
+            self.dirty = true
         elseif self.cursorY > 1 then
             local currentLine = self.lines[self.cursorY]
             self.cursorX = #self.lines[self.cursorY - 1] + 1
             self.lines[self.cursorY - 1] = self.lines[self.cursorY - 1] .. currentLine
             table.remove(self.lines, self.cursorY)
             self.cursorY = self.cursorY - 1
+            self.dirty = true
         end
     elseif key == "return" then
         local line = self.lines[self.cursorY]
@@ -98,6 +113,7 @@ function TextEditor:keypressed(key)
         table.insert(self.lines, self.cursorY + 1, after)
         self.cursorY = self.cursorY + 1
         self.cursorX = 1
+        self.dirty = true
     elseif key == "left" then
         if self.cursorX > 1 then
             self.cursorX = self.cursorX - 1
@@ -118,7 +134,6 @@ function TextEditor:keypressed(key)
             self.cursorY = self.cursorY - 1
             local line = self.lines[self.cursorY]
             self.cursorX = math.min(self.cursorX, #line + 1)
-            -- Adjust scroll: if new cursorY is above visible area, update scrollOffset.
             local topVisible = math.floor(self.scrollOffset / self.lineHeight) + 1
             if self.cursorY < topVisible then
                 self.scrollOffset = (self.cursorY - 1) * self.lineHeight
@@ -129,12 +144,14 @@ function TextEditor:keypressed(key)
             self.cursorY = self.cursorY + 1
             local line = self.lines[self.cursorY]
             self.cursorX = math.min(self.cursorX, #line + 1)
-            -- Adjust scroll: if new cursorY is below visible area, update scrollOffset.
             local visibleLines = math.floor(self.editorHeight / self.lineHeight)
             if self.cursorY > (math.floor(self.scrollOffset / self.lineHeight) + visibleLines) then
                 self.scrollOffset = (self.cursorY - visibleLines) * self.lineHeight
             end
         end
+    elseif key == "s" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
+        -- Ctrl+S to save the file.
+        self:saveFile()
     end
 end
 
@@ -143,6 +160,18 @@ function TextEditor:wheelmoved(x, y)
     local visibleHeight = self.editorHeight
     local maxScroll = math.max(totalHeight - visibleHeight, 0)
     self.scrollOffset = math.max(0, math.min(self.scrollOffset - y * 20, maxScroll))
+end
+
+-- Save the current text back to the file system.
+function TextEditor:saveFile()
+    if self.fileNode then
+        self.fileNode.content = table.concat(self.lines, "\n")
+        filesystem.save(filesystem.getFS())
+        self.dirty = false
+        -- table.insert(self.lines, "> File saved successfully!")
+    -- else
+        -- table.insert(self.lines, "> No file associated with this editor!")
+    end
 end
 
 return TextEditor
