@@ -245,7 +245,7 @@ local inlineSubstitutions = {
         return "Terminal version 1.0"
     end,
     uname = function(self, ...)
-        return "Simulated OS: 2DPrototype OS"
+        return "user@root"
     end,
 }
 

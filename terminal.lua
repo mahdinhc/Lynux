@@ -58,7 +58,7 @@ function Terminal.new()
     self.rawLines = {}           -- raw (unwrapped) lines
     self.inputBuffer = ""
     self.prompt = "$ "
-    self.font = love.graphics.newFont("font/x14y24pxHeadUpDaisy.ttf", 12)
+    self.font = love.graphics.newFont("font/consola.ttf", 12)
     love.graphics.setFont(self.font)
     self.cursorBlinkTimer = 0
     self.cursorVisible = true
@@ -67,7 +67,7 @@ function Terminal.new()
     self.wrapWidth = 400 - 40
     self.autoScroll = true
     self.maxVisibleLines = math.floor((300 - 20) / self.font:getHeight()) - 2
-    table.insert(self.rawLines, "Welcome to the 2DPrototype & CORNTOOZ's Terminal!")
+    table.insert(self.rawLines, "Lynux Terminal!")
     table.insert(self.rawLines, "Type 'help' for available commands.")
     
     -- Use the shared file system.
