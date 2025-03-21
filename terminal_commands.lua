@@ -43,7 +43,6 @@ local function resolvePathParts(path)
 end
 
 -- Given a cwd and a path string, return the node at that path.
--- If path starts with "/", it's absolute (starting at fs root); otherwise relative.
 local function navigatePath(cwd, path)
     local node
     if path:sub(1,1) == "/" then
@@ -71,7 +70,7 @@ local function navigatePath(cwd, path)
     return node
 end
 
--- For commands like touch/mv, we need to resolve the parent directory and the new name.
+-- For commands like touch/mv, resolve the parent directory and the new name.
 local function resolveParentAndName(cwd, path)
     local node
     if path:sub(1,1) == "/" then
@@ -108,11 +107,27 @@ function TerminalCommands.process(self, command)
 
     -- Ensure the terminal instance has a variables table.
     self.variables = self.variables or {}
+
+    -- Inline substitutions: map built-in names to functions.
+    local inlineSubstitutions = {
+        pwd = function() return filesystem.getPath(self.cwd) end,
+        date = function() return os.date("%Y-%m-%d") end,
+        time = function() return os.date("%H:%M:%S") end,
+        version = function() return "Terminal version 1.0" end,
+        uname = function() return "Simulated OS: 2DPrototype OS" end,
+    }
+
     -- Substitute any argument that starts with '$'
     for i, arg in ipairs(args) do
         if arg:sub(1,1) == "$" then
             local varName = arg:sub(2)
-            args[i] = self.variables[varName] or ""
+            if self.variables[varName] then
+                args[i] = self.variables[varName]
+            elseif inlineSubstitutions[varName] then
+                args[i] = inlineSubstitutions[varName]()
+            else
+                args[i] = ""  -- or leave as-is if you prefer
+            end
         end
     end
 
@@ -143,10 +158,8 @@ function TerminalCommands.process(self, command)
             local varName = args[2]
             local data = table.concat(args, " ", 3)
             self.variables[varName] = data
-            -- self:print("Variable '" .. varName .. "' set to: " .. data)
         end
     elseif cmd == "vars" then
-        -- self:print("Variables:")
         for k, v in pairs(self.variables) do
             self:print("  " .. k .. " = " .. v)
         end
@@ -189,7 +202,7 @@ function TerminalCommands.process(self, command)
             local dirname = args[2]
             local parent, name = resolveParentAndName(self.cwd, dirname)
             if not parent then
-                self:print(name)  -- error message in 'name'
+                self:print(name)
             elseif parent.children[name] then
                 self:print("Already exists: " .. dirname)
             else
@@ -198,22 +211,26 @@ function TerminalCommands.process(self, command)
                 filesystem.save(self.filesystem)
             end
         end
-    elseif cmd == "touch" then
-        if #args < 2 then
-            self:print("Usage: touch <file>")
-        else
-            local filename = args[2]
-            local parent, name = resolveParentAndName(self.cwd, filename)
-            if not parent then
-                self:print(name)
-            elseif parent.children[name] then
-                self:print("Already exists: " .. filename)
-            else
-                local newfile = { name = name, type = "file", content = "" }
-                parent.children[name] = newfile
-                filesystem.save(self.filesystem)
-            end
-        end
+	elseif cmd == "touch" then
+		if #args < 2 then
+			self:print("Usage: touch <file> [data]")
+		else
+			local filename = args[2]
+			local parent, name = resolveParentAndName(self.cwd, filename)
+			if not parent then
+				self:print(name)
+			elseif parent.children[name] then
+				self:print("Already exists: " .. filename)
+			else
+				local content = ""
+				if #args >= 3 then
+					content = table.concat(args, " ", 3)
+				end
+				local newfile = { name = name, type = "file", content = content }
+				parent.children[name] = newfile
+				filesystem.save(self.filesystem)
+			end
+		end
     elseif cmd == "rm" then
         if #args < 2 then
             self:print("Usage: rm <file|directory>")
@@ -254,15 +271,9 @@ function TerminalCommands.process(self, command)
                 if not node then
                     self:print("Not found: " .. path)
                 else
-                    if node.type == "directory" then
-                        parent.children[name] = nil
-                        filesystem.save(self.filesystem)
-                        self:print("Removed directory recursively: " .. path)
-                    else
-                        parent.children[name] = nil
-                        filesystem.save(self.filesystem)
-                        self:print("Removed file: " .. path)
-                    end
+                    parent.children[name] = nil
+                    filesystem.save(self.filesystem)
+                    self:print("Removed " .. path)
                 end
             end
         end
@@ -329,29 +340,28 @@ function TerminalCommands.process(self, command)
             end
         end
     elseif cmd == "date" then
-        self:print(os.date("Current Date: %Y-%m-%d"))
+        self:print(inlineSubstitutions.date())
     elseif cmd == "time" then
-        self:print(os.date("Current Time: %H:%M:%S"))
+        self:print(inlineSubstitutions.time())
     elseif cmd == "version" then
-        self:print("Terminal version 1.0")
+        self:print(inlineSubstitutions.version())
     elseif cmd == "uname" then
-        self:print("Simulated OS: 2DPrototype OS")
+        self:print(inlineSubstitutions.uname())
     else
-		if command:sub(-3) == ".sh" then
-			local parent, name = resolveParentAndName(self.cwd, command)
-			if parent and parent.children[name] and parent.children[name].type == "file" then
-				local content = parent.children[name].content
-				for line in content:gmatch("([^\n]+)") do
-					TerminalCommands.process(self, line)
-				end
-			else
-				self:print("Script file not found: " .. command)
-			end
-		else 
-			self:print("Unknown command: " .. command)
-		end
+        if command:sub(-3) == ".sh" then
+            local parent, name = resolveParentAndName(self.cwd, command)
+            if parent and parent.children[name] and parent.children[name].type == "file" then
+                local content = parent.children[name].content
+                for line in content:gmatch("([^\n]+)") do
+                    TerminalCommands.process(self, line)
+                end
+            else
+                self:print("Script file not found: " .. command)
+            end
+        else 
+            self:print("Unknown command: " .. command)
+        end
     end
-	
 
     if self.autoScroll then
         self.scrollOffset = 0
