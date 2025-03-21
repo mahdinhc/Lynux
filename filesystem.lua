@@ -102,7 +102,7 @@ function filesystem.generateTree(node, prefix)
         local child = node.children[name]
         if child.type == "directory" then
             table.insert(lines, prefix .. name .. "/")
-            local subLines = filesystem.generateTree(child, prefix .. "+ ")
+            local subLines = filesystem.generateTree(child, prefix .. "  ")
             for _, subline in ipairs(subLines) do
                 table.insert(lines, subline)
             end

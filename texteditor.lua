@@ -10,7 +10,7 @@ function TextEditor.new(filename, fileNode)
     self.lines = {""}               -- Starting content: one empty line.
     self.cursorX = 1                -- Position in current line (character index)
     self.cursorY = 1                -- Current line number
-    self.font = love.graphics.newFont(14)
+    self.font = love.graphics.newFont("font/consola.ttf",12)
     self.blinkTimer = 0
     self.cursorVisible = true
     self.scrollOffset = 0
