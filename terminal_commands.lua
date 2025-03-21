@@ -28,12 +28,12 @@ local function parseArgs(input)
     return args
 end
 
--- Helper function for printing output.
+-- Helper: print output to the terminal.
 function TerminalCommands.print(self, text)
     table.insert(self.rawLines, text)
 end
 
--- Helper function: resolve a path into its parts.
+-- Helper: resolve a path into its parts.
 local function resolvePathParts(path)
     local parts = {}
     for part in path:gmatch("[^/]+") do
@@ -42,7 +42,7 @@ local function resolvePathParts(path)
     return parts
 end
 
--- Given a cwd and a path string, return the node at that path.
+-- Given a cwd and a path, return the node at that path.
 local function navigatePath(cwd, path)
     local node
     if path:sub(1,1) == "/" then
@@ -70,7 +70,7 @@ local function navigatePath(cwd, path)
     return node
 end
 
--- For commands like touch/mv, resolve the parent directory and the new name.
+-- For commands like touch/mv, resolve the parent directory and file name.
 local function resolveParentAndName(cwd, path)
     local node
     if path:sub(1,1) == "/" then
@@ -81,13 +81,13 @@ local function resolveParentAndName(cwd, path)
     end
     local parts = resolvePathParts(path)
     if #parts == 0 then return nil, "Invalid path" end
-    local name = table.remove(parts)  -- last part is the file/directory name.
+    local name = table.remove(parts)
     for _, part in ipairs(parts) do
         if part == ".." then
             if node.parent then
                 node = node.parent
             else
-                return nil, "Invalid path (attempt to traverse above root)"
+                return nil, "Invalid path (above root)"
             end
         else
             if node.children and node.children[part] then
@@ -100,70 +100,30 @@ local function resolveParentAndName(cwd, path)
     return node, name
 end
 
--- Process a command string. 'self' is the Terminal instance.
-function TerminalCommands.process(self, command)
-    local args = parseArgs(command)
-    if #args == 0 then return end
-
-    -- Ensure the terminal instance has a variables table.
-    self.variables = self.variables or {}
-
-    -- Inline substitutions: map built-in names to functions.
-    local inlineSubstitutions = {
-        pwd = function() return filesystem.getPath(self.cwd) end,
-        date = function() return os.date("%Y-%m-%d") end,
-        time = function() return os.date("%H:%M:%S") end,
-        version = function() return "Terminal version 1.0" end,
-        uname = function() return "Simulated OS: 2DPrototype OS" end,
-    }
-
-    -- Substitute any argument that starts with '$'
-    for i, arg in ipairs(args) do
-        if arg:sub(1,1) == "$" then
-            local varName = arg:sub(2)
-            if self.variables[varName] then
-                args[i] = self.variables[varName]
-            elseif inlineSubstitutions[varName] then
-                args[i] = inlineSubstitutions[varName]()
-            else
-                args[i] = ""  -- or leave as-is if you prefer
-            end
-        end
-    end
-
-    local cmd = args[1]
-    
-    if cmd == "help" then
+-- Inline substitutions table: all built-in command functions.
+local inlineSubstitutions = {
+    help = function(self, ...)
         self:print("Available commands:")
-        self:print("  help, clear/cls, echo <text>")
-        self:print("  ls, pwd, cd <dir>, mkdir <dir>")
-        self:print("  touch <file>, rm <file|dir>, rmall <dir>, mv <src> <dst>")
-        self:print("  cat <file>, tree, date, time, version, uname")
-        self:print("  set <variable> <data>")
-        self:print("  vars")
-    elseif cmd == "clear" or cmd == "cls" then
+        self:print("  help, clear, echo, set, vars, ls, pwd, cd, mkdir, touch, rm, rmall, mv, cat, tree, date, time, version, uname")
+    end,
+    clear = function(self, ...)
         self.rawLines = {}
         self.scrollOffset = 0
-    elseif cmd == "echo" then
-        if #args >= 2 then
-            local text = table.concat(args, " ", 2)
-            self:print(text)
-        else
-            self:print("Usage: echo <text>")
-        end
-    elseif cmd == "set" then
-        if #args < 3 then
-            self:print("Usage: set <variable> <data>")
-        else
-            local varName = args[2]
-            local data = table.concat(args, " ", 3)
-            self.variables[varName] = data
-        end
-    elseif cmd == "vars" then
-        for k, v in pairs(self.variables) do
+    end,
+    echo = function(self, ...)
+        return table.concat({...}, " ")
+    end,
+    set = function(self, varName, ...)
+        local data = table.concat({...}, " ")
+        self.variables = self.variables or {}
+        self.variables[varName] = data
+    end,
+    vars = function(self, ...)
+        for k, v in pairs(self.variables or {}) do
             self:print("  " .. k .. " = " .. v)
         end
-    elseif cmd == "ls" then
+    end,
+    ls = function(self, ...)
         local list = {}
         for name, node in pairs(self.cwd.children or {}) do
             if node.type == "directory" then
@@ -172,181 +132,161 @@ function TerminalCommands.process(self, command)
                 table.insert(list, name)
             end
         end
-        if #list == 0 then
-            self:print("Directory is empty.")
-        else
-            self:print(table.concat(list, "   "))
-        end
-    elseif cmd == "pwd" then
-        self:print(filesystem.getPath(self.cwd))
-    elseif cmd == "cd" then
-        if #args < 2 then
-            self:print("Usage: cd <directory>")
-        else
-            local target = args[2]
-            local node, err = navigatePath(self.cwd, target)
-            if node then
-                if node.type == "directory" then
-                    self.cwd = node
-                else
-                    self:print("Not a directory: " .. target)
-                end
+        if #list == 0 then return "Directory is empty." end
+        return table.concat(list, "   ")
+    end,
+    pwd = function(self, ...)
+        return filesystem.getPath(self.cwd)
+    end,
+    cd = function(self, target)
+        if not target then return "Usage: cd <directory>" end
+        local node, err = navigatePath(self.cwd, target)
+        if node then
+            if node.type == "directory" then
+                self.cwd = node
             else
-                self:print(err)
+                return "Not a directory: " .. target
             end
-        end
-    elseif cmd == "mkdir" then
-        if #args < 2 then
-            self:print("Usage: mkdir <directory>")
         else
-            local dirname = args[2]
-            local parent, name = resolveParentAndName(self.cwd, dirname)
-            if not parent then
-                self:print(name)
-            elseif parent.children[name] then
-                self:print("Already exists: " .. dirname)
+            return err
+        end
+    end,
+    mkdir = function(self, dirname)
+        if not dirname then return "Usage: mkdir <directory>" end
+        local parent, name = resolveParentAndName(self.cwd, dirname)
+        if not parent then return name end
+        if parent.children[name] then
+            return "Already exists: " .. dirname
+        else
+            local newdir = { name = name, type = "directory", parent = parent, children = {} }
+            parent.children[name] = newdir
+            filesystem.save(self.filesystem)
+        end
+    end,
+    touch = function(self, filename, ...)
+        if not filename then return "Usage: touch <file> [data]" end
+        local parent, name = resolveParentAndName(self.cwd, filename)
+        if not parent then return name end
+        if parent.children[name] then
+            return "Already exists: " .. filename
+        else
+            local content = table.concat({...}, " ")
+            local newfile = { name = name, type = "file", content = content }
+            parent.children[name] = newfile
+            filesystem.save(self.filesystem)
+        end
+    end,
+    rm = function(self, path)
+        if not path then return "Usage: rm <file|directory>" end
+        local parent, name = resolveParentAndName(self.cwd, path)
+        if not parent then return name end
+        local node = parent.children[name]
+        if not node then return "Not found: " .. path end
+        if node.type == "directory" then
+            if next(node.children or {}) ~= nil then
+                return "Directory not empty: " .. path
             else
-                local newdir = { name = name, type = "directory", parent = parent, children = {} }
-                parent.children[name] = newdir
+                parent.children[name] = nil
                 filesystem.save(self.filesystem)
             end
-        end
-	elseif cmd == "touch" then
-		if #args < 2 then
-			self:print("Usage: touch <file> [data]")
-		else
-			local filename = args[2]
-			local parent, name = resolveParentAndName(self.cwd, filename)
-			if not parent then
-				self:print(name)
-			elseif parent.children[name] then
-				self:print("Already exists: " .. filename)
-			else
-				local content = ""
-				if #args >= 3 then
-					content = table.concat(args, " ", 3)
-				end
-				local newfile = { name = name, type = "file", content = content }
-				parent.children[name] = newfile
-				filesystem.save(self.filesystem)
-			end
-		end
-    elseif cmd == "rm" then
-        if #args < 2 then
-            self:print("Usage: rm <file|directory>")
         else
-            local path = args[2]
-            local parent, name = resolveParentAndName(self.cwd, path)
-            if not parent then
-                self:print(name)
-            else
-                local node = parent.children[name]
-                if not node then
-                    self:print("Not found: " .. path)
-                else
-                    if node.type == "directory" then
-                        if next(node.children or {}) ~= nil then
-                            self:print("Directory not empty: " .. path)
-                        else
-                            parent.children[name] = nil
-                            filesystem.save(self.filesystem)
-                        end
-                    else
-                        parent.children[name] = nil
-                        filesystem.save(self.filesystem)
-                    end
-                end
-            end
+            parent.children[name] = nil
+            filesystem.save(self.filesystem)
         end
-    elseif cmd == "rmall" then
-        if #args < 2 then
-            self:print("Usage: rmall <directory>")
-        else
-            local path = args[2]
-            local parent, name = resolveParentAndName(self.cwd, path)
-            if not parent then
-                self:print(name)
-            else
-                local node = parent.children[name]
-                if not node then
-                    self:print("Not found: " .. path)
-                else
-                    parent.children[name] = nil
-                    filesystem.save(self.filesystem)
-                    self:print("Removed " .. path)
-                end
-            end
-        end
-    elseif cmd == "mv" then
-        if #args < 3 then
-            self:print("Usage: mv <source> <destination>")
-        else
-            local srcPath = args[2]
-            local dstPath = args[3]
-            local srcParent, srcName = resolveParentAndName(self.cwd, srcPath)
-            if not srcParent then
-                self:print(srcName)
-            else
-                local node = srcParent.children[srcName]
-                if not node then
-                    self:print("Source not found: " .. srcPath)
-                else
-                    local dstParent, dstName = resolveParentAndName(self.cwd, dstPath)
-                    if not dstParent then
-                        self:print(dstName)
-                    elseif dstParent.children[dstName] then
-                        self:print("Destination already exists: " .. dstPath)
-                    else
-                        srcParent.children[srcName] = nil
-                        node.name = dstName
-                        node.parent = dstParent
-                        dstParent.children[dstName] = node
-                        filesystem.save(self.filesystem)
-                        self:print("Moved/Renamed " .. srcPath .. " to " .. dstPath)
-                    end
-                end
-            end
-        end
-    elseif cmd == "cat" then
-        if #args < 2 then
-            self:print("Usage: cat <filename>")
-        else
-            local filename = args[2]
-            local parent, name = resolveParentAndName(self.cwd, filename)
-            if not parent then
-                self:print(name)
-            else
-                local node = parent.children[name]
-                if not node then
-                    self:print("No such file: " .. filename)
-                elseif node.type ~= "file" then
-                    self:print(filename .. " is not a file.")
-                else
-                    if node.content == "" then
-                        self:print("File is empty.")
-                    else
-                        self:print(node.content)
-                    end
-                end
-            end
-        end
-    elseif cmd == "tree" then
+    end,
+    rmall = function(self, path)
+        if not path then return "Usage: rmall <directory>" end
+        local parent, name = resolveParentAndName(self.cwd, path)
+        if not parent then return name end
+        local node = parent.children[name]
+        if not node then return "Not found: " .. path end
+        parent.children[name] = nil
+        filesystem.save(self.filesystem)
+        return "Removed " .. path
+    end,
+    mv = function(self, src, dst)
+        if not src or not dst then return "Usage: mv <source> <destination>" end
+        local srcParent, srcName = resolveParentAndName(self.cwd, src)
+        if not srcParent then return srcName end
+        local node = srcParent.children[srcName]
+        if not node then return "Source not found: " .. src end
+        local dstParent, dstName = resolveParentAndName(self.cwd, dst)
+        if not dstParent then return dstName end
+        if dstParent.children[dstName] then return "Destination already exists: " .. dst end
+        srcParent.children[srcName] = nil
+        node.name = dstName
+        node.parent = dstParent
+        dstParent.children[dstName] = node
+        filesystem.save(self.filesystem)
+        return "Moved/Renamed " .. src .. " to " .. dst
+    end,
+    cat = function(self, filename)
+        if not filename then return "Usage: cat <file>" end
+        local parent, name = resolveParentAndName(self.cwd, filename)
+        if not parent then return name end
+        local node = parent.children[name]
+        if not node then return "No such file: " .. filename end
+        if node.type ~= "file" then return filename .. " is not a file." end
+        if node.content == "" then return "File is empty." end
+        return node.content
+    end,
+    tree = function(self, ...)
         local treeLines = filesystem.generateTree(self.cwd, "")
-        if #treeLines == 0 then
-            self:print("Directory is empty.")
-        else
-            for _, line in ipairs(treeLines) do
-                self:print(line)
+        if #treeLines == 0 then return "Directory is empty." end
+        return table.concat(treeLines, "\n")
+    end,
+    date = function(self, ...)
+        return os.date("%Y-%m-%d")
+    end,
+    time = function(self, ...)
+        return os.date("%H:%M:%S")
+    end,
+    version = function(self, ...)
+        return "Terminal version 1.0"
+    end,
+    uname = function(self, ...)
+        return "Simulated OS: 2DPrototype OS"
+    end,
+}
+
+-- Process a command string. 'self' is the Terminal instance.
+function TerminalCommands.process(self, command)
+    local args = parseArgs(command)
+    if #args == 0 then return end
+
+    self.variables = self.variables or {}
+
+    -- First, substitute inline function calls and variable references.
+    for i, arg in ipairs(args) do
+        local funcName, funcArgs = arg:match("^%$(%w+)%((.*)%)$")
+        if funcName then
+            if inlineSubstitutions[funcName] then
+                local parsedArgs = {}
+                for token in funcArgs:gmatch("[^,]+") do
+                    token = token:gsub("^%s*(.-)%s*$", "%1")
+                    token = token:gsub('^"(.*)"$', "%1")
+                    table.insert(parsedArgs, token)
+                end
+                args[i] = inlineSubstitutions[funcName](self, unpack(parsedArgs))
+            else
+                args[i] = ""
+            end
+        elseif arg:sub(1,1) == "$" then
+            local varName = arg:sub(2)
+            if self.variables[varName] then
+                args[i] = self.variables[varName]
+            elseif inlineSubstitutions[varName] then
+                args[i] = inlineSubstitutions[varName](self)
+            else
+                args[i] = ""
             end
         end
-    elseif cmd == "date" then
-        self:print(inlineSubstitutions.date())
-    elseif cmd == "time" then
-        self:print(inlineSubstitutions.time())
-    elseif cmd == "version" then
-        self:print(inlineSubstitutions.version())
-    elseif cmd == "uname" then
-        self:print(inlineSubstitutions.uname())
+    end
+
+    local cmd = args[1]
+    if inlineSubstitutions[cmd] then
+        local result = inlineSubstitutions[cmd](self, unpack(args, 2))
+        if result then self:print(result) end
     else
         if command:sub(-3) == ".sh" then
             local parent, name = resolveParentAndName(self.cwd, command)

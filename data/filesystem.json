@@ -1,1 +1,153 @@
-{"children":{"home":{"children":{"shared":{"children":{"ProjectQ":{"children":{"energy_64.q":{"content":"use q_gates\nuse *q\n\nphi :=  sin(e^ln(g)) - inte(pi,inf,fn(x){x^cos(lambda)})\nx_trans = y / y ^ phi -  tan(q) * time_constant","type":"file","name":"energy_64.q"},"lhc.q":{"content":"","type":"file","name":"lhc.q"},"energy.q":{"content":"","type":"file","name":"energy.q"},"basic.q":{"content":"","type":"file","name":"basic.q"},"bindings.q":{"content":"","type":"file","name":"bindings.q"},"quantam_api.q":{"content":"","type":"file","name":"quantam_api.q"}},"type":"directory","name":"ProjectQ"}},"type":"directory","name":"shared"},"user":{"children":{"Downloads":{"children":[],"type":"directory","name":"Downloads"},"Documents":{"children":{"notes.txt":{"content":"[12 Jun, 2018]\nTut. off\n\n[18 Jun 2018]\nBought umbrella\n\n[5 July 2018]\nDepr.\n","type":"file","name":"notes.txt"}},"type":"directory","name":"Documents"}},"type":"directory","name":"user"}},"type":"directory","name":"home"},"dev":{"children":[],"type":"directory","name":"dev"},"boot":{"children":[],"type":"directory","name":"boot"},"root":{"children":[],"type":"directory","name":"root"},"entropy":{"children":{"$d7lnZ0uSyJBy.e":{"content":"99060735569487020 POPmGIDqPC92PiYwPH","type":"file","name":"$d7lnZ0uSyJBy.e"},"$eMba2adDUaDN.e":{"content":"-27941549819892584 p7wRNH98nLJ9tAmUox","type":"file","name":"$eMba2adDUaDN.e"},"$13hAkDNePCsm.e":{"content":"-54402111088936984 zcYPiJkMQuKxUivUEP","type":"file","name":"$13hAkDNePCsm.e"},"$iTpQ2mPGYu8o.e":{"content":"-99999020655070350 YhujNKsFl7c0KK0doH","type":"file","name":"$iTpQ2mPGYu8o.e"},"$42Hq1AkIdFvw.e":{"content":"65698659871878910 ITT7frGmT9X4wogIge","type":"file","name":"$42Hq1AkIdFvw.e"},"$x9S572zxybQQ.e":{"content":"14112000805986726 ZUcZ8E8p1lFLRVekxU","type":"file","name":"$x9S572zxybQQ.e"},"$kIV9w82TTIH5.e":{"content":"-53657291800043490 j0qC99zi9aX3o9Fm99","type":"file","name":"$kIV9w82TTIH5.e"},"$m4sEZGvH5S5t.e":{"content":"41211848524175660 fZddppqM23nTIKgjlm","type":"file","name":"$m4sEZGvH5S5t.e"},"$XTeMw7yIAvHs.e":{"content":"98935824662338160 nuoiZRAMG0FMgysLUL","type":"file","name":"$XTeMw7yIAvHs.e"},"$k1lBMcRjGCjN.e":{"content":"-75680249530792820 Z_q8BQ50avT2vXIPtA","type":"file","name":"$k1lBMcRjGCjN.e"},"$HWVrElsmATO1.e":{"content":"65028784015711704 Wq7d6I8bVivhtcqWDi","type":"file","name":"$HWVrElsmATO1.e"},"$M8czgpM5AU3s.e":{"content":"-95892427466313840 4kSgOIkncBav0NLowY","type":"file","name":"$M8czgpM5AU3s.e"},"$jlfJZtDGJHhY.e":{"content":"4.442882938158366 8OqpzZR9_pWxkf3_eM","type":"file","name":"$jlfJZtDGJHhY.e"},"$KxOINv3V4cI7.e":{"content":"90929742682568160 uQBZyApl8EC3OgCibV","type":"file","name":"$KxOINv3V4cI7.e"},"$X6q1UlVwfv45.e":{"content":"84147098480789650 gtpqXmRk39fUBWjd1Q","type":"file","name":"$X6q1UlVwfv45.e"},"$C8XULMx71pfg.e":{"content":"42016703682664100 whbQCFpCuB4VMMKGcV","type":"file","name":"$C8XULMx71pfg.e"}},"type":"directory","name":"entropy"},"tmp":{"children":[],"type":"directory","name":"tmp"},"media":{"children":[],"type":"directory","name":"media"},"usr":{"children":{"local":{"children":[],"type":"directory","name":"local"},"lib":{"children":[],"type":"directory","name":"lib"},"bin":{"children":[],"type":"directory","name":"bin"}},"type":"directory","name":"usr"},"bin":{"children":[],"type":"directory","name":"bin"}},"type":"directory","name":"/"}
+{
+    "children": {
+        "home": {
+            "children": {
+                "shared": {
+                    "children": {
+                        "ProjectQ": {
+                            "children": {
+                                "energy_64.q": {
+                                    "content": "use q_gates\nuse *q\n\nphi :=  sin(e^ln(g)) - inte(pi,inf,fn(x){x^cos(lambda)})\nx_trans = y / y ^ phi -  tan(q) * time_constant",
+                                    "type": "file",
+                                    "name": "energy_64.q"
+                                },
+                                "lhc.q": {
+                                    "content": "",
+                                    "type": "file",
+                                    "name": "lhc.q"
+                                },
+                                "energy.q": {
+                                    "content": "",
+                                    "type": "file",
+                                    "name": "energy.q"
+                                },
+                                "basic.q": {
+                                    "content": "",
+                                    "type": "file",
+                                    "name": "basic.q"
+                                },
+                                "bindings.q": {
+                                    "content": "",
+                                    "type": "file",
+                                    "name": "bindings.q"
+                                },
+                                "quantam_api.q": {
+                                    "content": "",
+                                    "type": "file",
+                                    "name": "quantam_api.q"
+                                }
+                            },
+                            "type": "directory",
+                            "name": "ProjectQ"
+                        }
+                    },
+                    "type": "directory",
+                    "name": "shared"
+                },
+                "user": {
+                    "children": {
+                        "Downloads": {
+                            "children": [
+                            ],
+                            "type": "directory",
+                            "name": "Downloads"
+                        },
+                        "Documents": {
+                            "children": {
+                                "notes.txt": {
+                                    "content": "[12 Jun, 2018]\nTut. off\n\n[18 Jun 2018]\nBought umbrella\n\n[5 July 2018]\nDepr.\n",
+                                    "type": "file",
+                                    "name": "notes.txt"
+                                }
+                            },
+                            "type": "directory",
+                            "name": "Documents"
+                        }
+                    },
+                    "type": "directory",
+                    "name": "user"
+                }
+            },
+            "type": "directory",
+            "name": "home"
+        },
+        "dev": {
+            "children": [
+            ],
+            "type": "directory",
+            "name": "dev"
+        },
+        "boot": {
+            "children": [
+            ],
+            "type": "directory",
+            "name": "boot"
+        },
+        "root": {
+            "children": [
+            ],
+            "type": "directory",
+            "name": "root"
+        },
+        "entropy": {
+            "children": {
+                "no_log": {
+                    "content": ":/",
+                    "type": "file",
+                    "name": "no_log"
+                }
+            },
+            "type": "directory",
+            "name": "entropy"
+        },
+        "tmp": {
+            "children": {
+                "wooh.sh": {
+                    "content": "clear\necho \"#     #                      ###\"\necho \"#  #  #  ####   ####  #    # ###\"\necho \"#  #  # #    # #    # #    # ###\"\necho \"#  #  # #    # #    # ######  # \"\necho \"#  #  # #    # #    # #    #    \"\necho \"#  #  # #    # #    # #    # ###\"\necho \" ## ##   ####   ####  #    # ###\"",
+                    "type": "file",
+                    "name": "wooh.sh"
+                }
+            },
+            "type": "directory",
+            "name": "tmp"
+        },
+        "media": {
+            "children": [
+            ],
+            "type": "directory",
+            "name": "media"
+        },
+        "usr": {
+            "children": {
+                "local": {
+                    "children": [
+                    ],
+                    "type": "directory",
+                    "name": "local"
+                },
+                "lib": {
+                    "children": [
+                    ],
+                    "type": "directory",
+                    "name": "lib"
+                },
+                "bin": {
+                    "children": [
+                    ],
+                    "type": "directory",
+                    "name": "bin"
+                }
+            },
+            "type": "directory",
+            "name": "usr"
+        },
+        "bin": {
+            "children": [
+            ],
+            "type": "directory",
+            "name": "bin"
+        }
+    },
+    "type": "directory",
+    "name": "/"
+}

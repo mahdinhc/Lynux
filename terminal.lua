@@ -18,24 +18,28 @@ end
 local function wrapText(text, width, font)
     local lines = {}
     local currentLine = ""
-    for word in text:gmatch("%S+") do
-        local testLine = currentLine == "" and word or (currentLine .. " " .. word)
-        if font:getWidth(testLine) > width then
-            if currentLine == "" then
-                table.insert(lines, word)
-            else
-                table.insert(lines, currentLine)
-                currentLine = word
-            end
+    local currentWidth = 0
+
+    for i = 1, #text do
+        local char = text:sub(i, i)
+        local newLine = currentLine .. char
+        local newWidth = font:getWidth(newLine)
+
+        if newWidth > width then
+            table.insert(lines, currentLine)
+            currentLine = char
         else
-            currentLine = testLine
+            currentLine = newLine
         end
     end
+
     if currentLine ~= "" then
         table.insert(lines, currentLine)
     end
+
     return lines
 end
+
 
 local function getWrappedLines(self)
     local wrapped = {}
@@ -69,6 +73,7 @@ function Terminal.new()
     -- Use the shared file system.
     self.filesystem = filesystem.getFS()
     self.cwd = self.filesystem
+	
     return self
 end
 
