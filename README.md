@@ -2,6 +2,10 @@
 
 Lynux is a Linux desktop emulator game built with [Love2D](https://love2d.org/). It simulates a Linux‑style desktop complete with a top bar (showing date and time), a bottom bar of app icons, and draggable windows for individual applications. The project is modular—each app is contained in its own Lua file—and many share a common file system.
 
+
+## Why?
+I'm developing a game based on this. However, I wanted the base code to be open source, which led to the creation of Lynux.
+
 ## Features
 
 - **Linux Desktop Emulation:**  
