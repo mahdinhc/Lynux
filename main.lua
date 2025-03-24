@@ -6,6 +6,7 @@ local TerminalApp = require("terminal")
 local RouletteApp = require("roulette")
 local TextEditor = require("texteditor")
 local DinoApp = require("dino")
+local TessarectApp = require("tessarect")
 local filesystemModule = require("filesystem")
 -- local Demoji = require("demoji")  -- require Demoji module
 
@@ -57,6 +58,7 @@ function love.load()
     terminalIcon = love.graphics.newImage("assets/terminal.png")
     rouletteIcon = love.graphics.newImage("assets/roulette.png")
     texteditorIcon = love.graphics.newImage("assets/file.png")
+    tessarectIcon = love.graphics.newImage("assets/cube.png")
     dinoIcon = love.graphics.newImage("assets/dino.png")
     
     local sharedFS = filesystemModule.load()
@@ -68,6 +70,7 @@ function love.load()
         { name = "Terminal", module = TerminalApp, instance = nil, icon = terminalIcon },
         { name = "Roulette", module = RouletteApp, instance = nil, icon = rouletteIcon },
         { name = "TextEditor", module = TextEditor, instance = nil, icon = texteditorIcon },
+        { name = "Tessarect", module = TessarectApp, instance = nil, icon = tessarectIcon },
         { name = "Dino", module = DinoApp, instance = nil, icon = dinoIcon },
     }
 
@@ -175,7 +178,9 @@ function love.draw()
             love.graphics.print("-", minX + 5, window.y + 2)
             
             if window.instance and window.instance.draw then
+				love.graphics.setScissor(window.x, window.y+20, window.width, window.height-20)
                 window.instance:draw(window.x, window.y + 20, window.width, window.height - 20)
+				love.graphics.setScissor()
             else
                 love.graphics.setColor(0, 0, 0)
                 love.graphics.print("Content of " .. window.app.name, window.x + 10, window.y + 30)
