@@ -29,6 +29,8 @@ local resizingWindow = nil
 local resizeOffsetX = 0
 local resizeOffsetY = 0
 local effectEnabled = false
+local screenWidth = love.graphics.getWidth()
+local screenHeight = love.graphics.getHeight()
 
 desktopHomeIcons = {}
 
@@ -118,8 +120,8 @@ function love.update(dt)
 end
 
 function love.draw()
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
+    screenWidth = love.graphics.getWidth()
+    screenHeight = love.graphics.getHeight()
     
     if effectEnabled then
         effect(function()
@@ -162,18 +164,24 @@ function drawDesktop()
             end
         end
         
-        if state == "closed" then
-            love.graphics.setColor(1, 1, 1)
-        elseif state == "maximized" then
-            love.graphics.setColor(0, 1, 0)
+
+		local iconMargin = 1
+		local targetIconHeight = app.height - iconMargin * 2
+		local scale = targetIconHeight / app.icon:getHeight()
+		local iconSize = targetIconHeight  -- this will be the square size
+
+		-- draw background square
+		if state == "maximized" then
+            love.graphics.setColor(0.3, 0.3, 0.3)
+			love.graphics.rectangle("fill", app.x, app.y, iconSize + iconMargin * 2, iconSize + iconMargin * 2)
         elseif state == "minimized" then
-            love.graphics.setColor(0, 0.7, 0)
+			love.graphics.setColor(0.2, 0.2, 0.2)
+			love.graphics.rectangle("fill", app.x, app.y, iconSize + iconMargin * 2, iconSize + iconMargin * 2)
         end
-        
-        local iconMargin = 2
-        local targetIconHeight = app.height - iconMargin * 2
-        local scale = targetIconHeight / app.icon:getHeight()
-        love.graphics.draw(app.icon, app.x + iconMargin, app.y + iconMargin, 0, scale, scale)
+
+		-- draw the icon
+		love.graphics.setColor(1, 1, 1)
+		love.graphics.draw(app.icon, app.x + iconMargin, app.y + iconMargin, 0, scale, scale)
     end
 
     -- Draw open app windows (existing code unchanged).
@@ -214,7 +222,7 @@ function drawDesktop()
                 love.graphics.print("Content of " .. window.app.name, window.x + 10, window.y + 30)
             end
             
-            local handleSize = 20
+            local handleSize = 10
             love.graphics.setColor(0.5, 0.5, 0.5)
             love.graphics.rectangle("fill", window.x + window.width - handleSize, window.y + window.height - handleSize, handleSize, handleSize)
         end

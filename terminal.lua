@@ -117,7 +117,7 @@ function Terminal:draw(x, y, width, height)
     -- Draw scrollbar if needed.
     if totalWrapped > visibleLines then
         local scrollbarWidth = 10
-        local scrollbarX = x + width - scrollbarWidth - 10
+        local scrollbarX = x + width - scrollbarWidth
         local scrollbarY = y + 10
         love.graphics.setColor(0.2, 0.2, 0.2, 0.5)
         love.graphics.rectangle("fill", scrollbarX, scrollbarY, scrollbarWidth, termHeight)
