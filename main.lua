@@ -28,6 +28,9 @@ local dragOffsetY = 0
 local resizingWindow = nil
 local resizeOffsetX = 0
 local resizeOffsetY = 0
+local effectEnabled = false
+
+desktopHomeIcons = {}
 
 -- Utility function to set focus on a window.
 local function setFocus(window)
@@ -41,8 +44,9 @@ local function setFocus(window)
     focusedWindow = window
 end
 
+
 function love.load()
-	love.graphics.setDefaultFilter("nearest", "nearest")
+    love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setTitle("Desktop")
     love.keyboard.setTextInput(true)
     love.keyboard.setKeyRepeat(true)
@@ -52,6 +56,9 @@ function love.load()
     bottomBarHeight = 40
 
     -- Load PNG icons.
+	home_folderIcon = love.graphics.newImage("assets/folder.png")
+	home_fileIcon   = love.graphics.newImage("assets/file.png")
+	
     emailIcon = love.graphics.newImage("assets/email.png")
     browserIcon = love.graphics.newImage("assets/browser.png")
     filesIcon = love.graphics.newImage("assets/files.png")
@@ -61,8 +68,18 @@ function love.load()
     tessarectIcon = love.graphics.newImage("assets/cube.png")
     dinoIcon = love.graphics.newImage("assets/dino.png")
     
-    local sharedFS = filesystemModule.load()
-    
+    local sharedFS = filesystemModule.getFS()
+    -- Ensure there is a "/home" folder in the root.
+    if not sharedFS.children["home"] then
+        sharedFS.children["home"] = { 
+            name = "home", 
+            type = "directory", 
+            parent = sharedFS, 
+            children = {} 
+        }
+    end
+    desktopHome = sharedFS.children["home"]
+
     apps = {
         { name = "Email", module = EmailApp, instance = nil, icon = emailIcon },
         { name = "Browser", module = BrowserApp, instance = nil, icon = browserIcon },
@@ -87,7 +104,6 @@ function love.load()
     end
 
     openApps = {}  -- List of open windows
-
     -- Instantiate Demoji.
     -- demojiInstance = Demoji.new()
 end
@@ -104,21 +120,35 @@ end
 function love.draw()
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
-	-- effect(function()
-    love.graphics.setFont(font)
+    
+    if effectEnabled then
+        effect(function()
+            drawDesktop()
+        end)
+    else
+        drawDesktop()
+    end
+end
+
+-- Draw the desktop and also draw the home folder icons.
+function drawDesktop()
     love.graphics.clear(0.2, 0.3, 0.4)
+    love.graphics.setFont(font)
     
     -- Draw top bar (date/time).
     love.graphics.setColor(0.1, 0.1, 0.1)
-    love.graphics.rectangle("fill", 0, 0, screenWidth, topBarHeight)
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), topBarHeight)
     love.graphics.setColor(1, 1, 1)
     local currentTime = os.date("%H:%M:%S")
     local currentDate = os.date("%Y-%m-%d")
     love.graphics.print(currentDate .. " " .. currentTime, 10, 8)
-
+    
+    -- Draw the desktop "home" area.
+    drawDesktopHome()
+    
     -- Draw bottom bar (app icons).
     love.graphics.setColor(0.1, 0.1, 0.1)
-    love.graphics.rectangle("fill", 0, screenHeight - bottomBarHeight, screenWidth, bottomBarHeight)
+    love.graphics.rectangle("fill", 0, love.graphics.getHeight() - bottomBarHeight, love.graphics.getWidth(), bottomBarHeight)
     for _, app in ipairs(apps) do
         local state = "closed"
         for _, window in ipairs(openApps) do
@@ -146,14 +176,12 @@ function love.draw()
         love.graphics.draw(app.icon, app.x + iconMargin, app.y + iconMargin, 0, scale, scale)
     end
 
-    -- Draw open app windows.
+    -- Draw open app windows (existing code unchanged).
     for _, window in ipairs(openApps) do
         if not window.minimized then
-			love.graphics.setFont(font)
+            love.graphics.setFont(font)
             love.graphics.setColor(0.8, 0.8, 0.8)
             love.graphics.rectangle("fill", window.x, window.y, window.width, window.height)
-            love.graphics.setColor(0, 0, 0)
-            love.graphics.rectangle("line", window.x, window.y, window.width, window.height)
             
             if window == focusedWindow then
                 love.graphics.setColor(0.0, 0.5, 1.0)
@@ -178,9 +206,9 @@ function love.draw()
             love.graphics.print("-", minX + 5, window.y + 2)
             
             if window.instance and window.instance.draw then
-				love.graphics.setScissor(window.x, window.y+20, window.width, window.height-20)
+                love.graphics.setScissor(window.x, window.y+20, window.width, window.height-20)
                 window.instance:draw(window.x, window.y + 20, window.width, window.height - 20)
-				love.graphics.setScissor()
+                love.graphics.setScissor()
             else
                 love.graphics.setColor(0, 0, 0)
                 love.graphics.print("Content of " .. window.app.name, window.x + 10, window.y + 30)
@@ -191,14 +219,61 @@ function love.draw()
             love.graphics.rectangle("fill", window.x + window.width - handleSize, window.y + window.height - handleSize, handleSize, handleSize)
         end
     end
-
-    -- Draw Demoji on top.
-    -- demojiInstance:draw()
-	-- end)
 end
+
+
+-- Draw desktop home icons (children of /home) in a grid.
+function drawDesktopHome()
+    desktopHomeIcons = {}  -- reset icons table
+    local startX = 10
+    local startY = topBarHeight + 10
+    local iconSize = 40
+    local padding = 20
+    local index = 0
+    if desktopHome and desktopHome.children then
+        -- Iterate through children in /home.
+        for name, node in pairs(desktopHome.children) do
+            index = index + 1
+            local col = (index - 1) % 4
+            local row = math.floor((index - 1) / 4)
+            local x = startX + col * (iconSize + padding)
+            local y = startY + row * (iconSize + padding)
+            local icon = home_fileIcon  -- default to file icon
+            if node.type == "directory" then
+                icon = home_folderIcon  -- you may choose a different icon for directories
+            end
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(icon, x, y, 0, iconSize / icon:getWidth(), iconSize / icon:getHeight())
+            love.graphics.setColor(0, 0, 0)
+            love.graphics.printf(name, x, y + iconSize + 2, iconSize, "center")
+            -- Save icon's bounding box and node for click detection.
+            table.insert(desktopHomeIcons, {x = x, y = y, width = iconSize, height = iconSize, node = node})
+        end
+    end
+end
+
 
 function love.mousepressed(x, y, button)
     if button == 1 then
+        -- Check if the click is in the desktop home area.
+        for _, icon in ipairs(desktopHomeIcons) do
+            if x >= icon.x and x <= icon.x + icon.width and y >= icon.y and y <= icon.y + icon.height then
+                -- Found a desktop icon click. Open FilesApp at icon.node.
+                local FilesApp = require("files")
+                local fileExplorer = FilesApp.new()
+                fileExplorer.cwd = icon.node  -- set explorer to this folder or file's parent.
+                fileExplorer:updateFileList()
+                -- Toggle FilesApp.
+                for i, app in ipairs(apps) do
+                    if app.name == "Files" then
+                        app.instance = fileExplorer
+                        toggleApp(app)
+                        break
+                    end
+                end
+                return  -- consume the click.
+            end
+        end
         -- First, dispatch to Demoji.
         -- if demojiInstance:mousepressed(x, y, button) then
             -- return  -- if Demoji consumed the click, don't process further.
@@ -347,6 +422,9 @@ function love.textinput(text)
 end
 
 function love.keypressed(key)
+    if key == "g" then
+        effectEnabled = not effectEnabled
+    end
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.keypressed then
         focusedWindow.instance:keypressed(key)
     end

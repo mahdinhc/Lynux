@@ -133,7 +133,7 @@ local inlineSubstitutions = {
             end
         end
         if #list == 0 then return "Directory is empty." end
-        return table.concat(list, "   ")
+        return table.concat(list, " ")
     end,
     pwd = function(self, ...)
         return filesystem.getPath(self.cwd)
