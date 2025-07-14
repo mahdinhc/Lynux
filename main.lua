@@ -8,6 +8,7 @@ local TextEditor = require("texteditor")
 local DinoApp = require("dino")
 local TessarectApp = require("tessarect")
 local ImageViewer = require("imageviewer")
+local ObjViewer = require("objviewer")
 local filesystemModule = require("filesystem")
 -- local Demoji = require("demoji")  -- require Demoji module
 
@@ -94,6 +95,7 @@ function love.load()
         { name = "Tessarect", module = TessarectApp, instance = nil, icon = tessarectIcon },
         { name = "Dino", module = DinoApp, instance = nil, icon = dinoIcon },
 		{ name = "ImageViewer", module = ImageViewer, instance = nil, icon = imageviewerIcon },
+		{ name = "ObjViewer", module = ObjViewer, instance = nil, icon = tessarectIcon },
     }
 
     iconWidth = 40
@@ -433,9 +435,9 @@ function love.textinput(text)
 end
 
 function love.keypressed(key)
-    if key == "g" then
-        effectEnabled = not effectEnabled
-    end
+    -- if key == "g" then
+        -- effectEnabled = not effectEnabled
+    -- end
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.keypressed then
         focusedWindow.instance:keypressed(key)
     end
@@ -469,7 +471,7 @@ function toggleApp(app)
         setFocus(found)
     else
         -- For TextEditor, check if an instance already exists:
-        if app.name == "TextEditor" and app.instance then
+        if (app.name == "TextEditor" or app.name == "ImageViewer" or app.name == "ObjViewer" ) and app.instance then
             -- Do not create a new instance; just open the existing one.
             local screenWidth = love.graphics.getWidth()
             local screenHeight = love.graphics.getHeight()
@@ -480,17 +482,17 @@ function toggleApp(app)
             local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
             table.insert(openApps, newWindow)
             setFocus(newWindow)
-		elseif app.name == "ImageViewer" and app.instance then
-            -- Do not create a new instance; just open the existing one.
-            local screenWidth = love.graphics.getWidth()
-            local screenHeight = love.graphics.getHeight()
-            local windowWidth = 500
-            local windowHeight = 300
-            local x = (screenWidth - windowWidth) / 2
-            local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
-            local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
-            table.insert(openApps, newWindow)
-            setFocus(newWindow)
+		-- elseif app.name == "ImageViewer" and app.instance then
+            -- -- Do not create a new instance; just open the existing one.
+            -- local screenWidth = love.graphics.getWidth()
+            -- local screenHeight = love.graphics.getHeight()
+            -- local windowWidth = 500
+            -- local windowHeight = 300
+            -- local x = (screenWidth - windowWidth) / 2
+            -- local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
+            -- local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
+            -- table.insert(openApps, newWindow)
+            -- setFocus(newWindow)
         else
             app.instance = app.module.new()
             local screenWidth = love.graphics.getWidth()

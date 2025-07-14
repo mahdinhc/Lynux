@@ -187,8 +187,19 @@ function FilesApp:openSelectedEntry()
       elseif node and node.type == "file" then
 		local ext = node.name:match("^.+(%..+)$") or ""
 		ext = ext:lower()
-		
-		if ext == ".png" or ext == ".jpg" or ext == ".jpeg" then
+	
+	  if ext == ".obj" then
+        -- Open in ObjViewer
+        local ObjViewer = require("objviewer")
+        local viewer = ObjViewer.new(filesystem.getPath(node), node)
+        for i, app in ipairs(apps) do
+            if app.name == "ObjViewer" then
+                app.instance = viewer
+                toggleApp(app)
+                break
+            end
+        end
+		elseif ext == ".png" or ext == ".jpg" or ext == ".jpeg" then
 			-- Open in ImageViewer
 			local viewer = ImageViewer.new(filesystem.getPath(node), node)
 			for i, app in ipairs(apps) do

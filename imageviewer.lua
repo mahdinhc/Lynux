@@ -12,7 +12,7 @@ function ImageViewer.new(__filepath, fileNode)
     self.dragging = false
     self.lastX, self.lastY = 0, 0
     
-	print(__filepath, fileNode)
+	-- print(__filepath, fileNode)
     -- Try to load image from virtual filesystem path
     local success, err = pcall(function()
 		filepath = "data/files/" .. __filepath 
@@ -26,7 +26,7 @@ function ImageViewer.new(__filepath, fileNode)
     end)
     
     if not success then
-        self.error = "Failed to load image: " .. filepath
+        self.error = "Failed to load image: " .. __filepath
     end
     
     return self
