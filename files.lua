@@ -1,6 +1,7 @@
 -- files.lua
 local filesystem = require("filesystem")
 local TextEditor = require("texteditor")
+local ImageViewer = require("imageviewer")
 local loveTimer = love.timer  -- alias for convenience
 
 local FilesApp = {}
@@ -184,27 +185,40 @@ function FilesApp:openSelectedEntry()
          self.cwd = node
          self:updateFileList()
       elseif node and node.type == "file" then
-         local TextEditor = require("texteditor")
-         print(entry, node)
-         local editor = TextEditor.new(filesystem.getPath(node), node)
-         if node.content and node.content ~= "" then
-            editor.lines = {}
-            for line in node.content:gmatch("([^\n]*)\n?") do
-               table.insert(editor.lines, line)
-            end
-         else
-            editor.lines = {""}
-         end
-         editor.filename = entry
-         editor.fileNode = node  -- This should now stick.
-         -- Set the TextEditor app's instance to your custom editor
-         for i, app in ipairs(apps) do
-            if app.name == "TextEditor" then
-               app.instance = editor
-               toggleApp(app)
-               break
-            end
-         end
+		local ext = node.name:match("^.+(%..+)$") or ""
+		ext = ext:lower()
+		
+		if ext == ".png" or ext == ".jpg" or ext == ".jpeg" then
+			-- Open in ImageViewer
+			local viewer = ImageViewer.new(filesystem.getPath(node), node)
+			for i, app in ipairs(apps) do
+				if app.name == "ImageViewer" then
+					app.instance = viewer
+					toggleApp(app)
+					break
+				end
+			end
+		else
+			 local editor = TextEditor.new(filesystem.getPath(node), node)
+			 if node.content and node.content ~= "" then
+				editor.lines = {}
+				for line in node.content:gmatch("([^\n]*)\n?") do
+				   table.insert(editor.lines, line)
+				end
+			 else
+				editor.lines = {""}
+			 end
+			 editor.filename = entry
+			 editor.fileNode = node  -- This should now stick.
+			 -- Set the TextEditor app's instance to your custom editor
+			 for i, app in ipairs(apps) do
+				if app.name == "TextEditor" then
+				   app.instance = editor
+				   toggleApp(app)
+				   break
+				end
+			 end
+		end
       end
    end
 end

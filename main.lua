@@ -7,6 +7,7 @@ local RouletteApp = require("roulette")
 local TextEditor = require("texteditor")
 local DinoApp = require("dino")
 local TessarectApp = require("tessarect")
+local ImageViewer = require("imageviewer")
 local filesystemModule = require("filesystem")
 -- local Demoji = require("demoji")  -- require Demoji module
 
@@ -69,6 +70,7 @@ function love.load()
     texteditorIcon = love.graphics.newImage("assets/file.png")
     tessarectIcon = love.graphics.newImage("assets/cube.png")
     dinoIcon = love.graphics.newImage("assets/dino.png")
+    imageviewerIcon = love.graphics.newImage("assets/image.png")
     
     local sharedFS = filesystemModule.getFS()
     -- Ensure there is a "/home" folder in the root.
@@ -91,6 +93,7 @@ function love.load()
         { name = "TextEditor", module = TextEditor, instance = nil, icon = texteditorIcon },
         { name = "Tessarect", module = TessarectApp, instance = nil, icon = tessarectIcon },
         { name = "Dino", module = DinoApp, instance = nil, icon = dinoIcon },
+		{ name = "ImageViewer", module = ImageViewer, instance = nil, icon = imageviewerIcon },
     }
 
     iconWidth = 40
@@ -467,6 +470,17 @@ function toggleApp(app)
     else
         -- For TextEditor, check if an instance already exists:
         if app.name == "TextEditor" and app.instance then
+            -- Do not create a new instance; just open the existing one.
+            local screenWidth = love.graphics.getWidth()
+            local screenHeight = love.graphics.getHeight()
+            local windowWidth = 500
+            local windowHeight = 300
+            local x = (screenWidth - windowWidth) / 2
+            local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
+            local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
+            table.insert(openApps, newWindow)
+            setFocus(newWindow)
+		elseif app.name == "ImageViewer" and app.instance then
             -- Do not create a new instance; just open the existing one.
             local screenWidth = love.graphics.getWidth()
             local screenHeight = love.graphics.getHeight()
