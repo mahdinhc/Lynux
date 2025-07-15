@@ -1,3 +1,4 @@
+-- main.lua
 local moonshine = require 'lib/moonshine'
 local EmailApp = require("email")
 local BrowserApp = require("browser")
@@ -36,6 +37,14 @@ local screenWidth = love.graphics.getWidth()
 local screenHeight = love.graphics.getHeight()
 
 desktopHomeIcons = {}
+desktopLayout = {}
+draggingIcon = nil
+dragIconOffsetX = 0
+dragIconOffsetY = 0
+startMenuOpen = false
+ellipsisMenuOpen = false
+visibleApps = {}
+hiddenApps = {}
 
 -- Utility function to set focus on a window.
 local function setFocus(window)
@@ -63,7 +72,7 @@ function love.load()
     -- Load PNG icons.
 	home_folderIcon = love.graphics.newImage("assets/folder.png")
 	home_fileIcon   = love.graphics.newImage("assets/file.png")
-	
+	home_shortcutIcon = love.graphics.newImage("assets/shortcut.png")
     emailIcon = love.graphics.newImage("assets/email.png")
     browserIcon = love.graphics.newImage("assets/browser.png")
     filesIcon = love.graphics.newImage("assets/files.png")
@@ -72,7 +81,10 @@ function love.load()
     texteditorIcon = love.graphics.newImage("assets/file.png")
     tessarectIcon = love.graphics.newImage("assets/cube.png")
     dinoIcon = love.graphics.newImage("assets/dino.png")
+    chatIcon = love.graphics.newImage("assets/chat.png")
     imageviewerIcon = love.graphics.newImage("assets/image.png")
+    startIcon = love.graphics.newImage("assets/layers.png")
+    ellipsisIcon = love.graphics.newImage("assets/option.png")
     
     local sharedFS = filesystemModule.getFS()
     -- Ensure there is a "/home" folder in the root.
@@ -85,6 +97,12 @@ function love.load()
         }
     end
     desktopHome = sharedFS.children["home"]
+    
+    -- Load desktop layout
+    if love.filesystem.getInfo("desktop_layout.json") then
+        local data = love.filesystem.read("desktop_layout.json")
+        desktopLayout = json.decode(data) or {}
+    end
 
     apps = {
         { name = "Email", module = EmailApp, instance = nil, icon = emailIcon },
@@ -97,13 +115,13 @@ function love.load()
         { name = "Dino", module = DinoApp, instance = nil, icon = dinoIcon },
 		{ name = "ImageViewer", module = ImageViewer, instance = nil, icon = imageviewerIcon },
 		{ name = "ObjViewer", module = ObjViewer, instance = nil, icon = tessarectIcon },
-		{ name = "NexusAI", module = NexusAI, instance = nil, icon = dinoIcon },
+		{ name = "NexusAI", module = NexusAI, instance = nil, icon = chatIcon },
     }
 
     iconWidth = 40
     iconHeight = 40
     iconSpacing = 8
-    local startX = iconSpacing
+    local startX = iconSpacing + 40  -- Space for start button
     for i, app in ipairs(apps) do
         app.x = startX
         app.y = love.graphics.getHeight() - bottomBarHeight + (bottomBarHeight - iconHeight) / 2
@@ -115,6 +133,25 @@ function love.load()
     openApps = {}  -- List of open windows
     -- Instantiate Demoji.
     -- demojiInstance = Demoji.new()
+    
+    -- Calculate visible apps for ellipsis menu
+    updateVisibleApps()
+end
+
+function updateVisibleApps()
+    local availableWidth = love.graphics.getWidth() - 120  -- Space for start button and ellipsis
+    local currentX = 80  -- Start after start button
+    visibleApps = {}
+    hiddenApps = {}
+    
+    for i, app in ipairs(apps) do
+        if currentX + app.width <= availableWidth then
+            table.insert(visibleApps, app)
+            currentX = currentX + app.width + iconSpacing
+        else
+            table.insert(hiddenApps, app)
+        end
+    end
 end
 
 function love.update(dt)
@@ -141,13 +178,13 @@ end
 
 -- Draw the desktop and also draw the home folder icons.
 function drawDesktop()
-    love.graphics.clear(0.2, 0.3, 0.4)
+    love.graphics.clear(0.15, 0.25, 0.35)  -- Darker blue background
     love.graphics.setFont(font)
     
     -- Draw top bar (date/time).
-    love.graphics.setColor(0.1, 0.1, 0.1)
+    love.graphics.setColor(0.08, 0.08, 0.1)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), topBarHeight)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(0.7, 0.8, 1.0)
     local currentTime = os.date("%H:%M:%S")
     local currentDate = os.date("%Y-%m-%d")
     love.graphics.print(currentDate .. " " .. currentTime, 10, 8)
@@ -156,9 +193,17 @@ function drawDesktop()
     drawDesktopHome()
     
     -- Draw bottom bar (app icons).
-    love.graphics.setColor(0.1, 0.1, 0.1)
+    love.graphics.setColor(0.08, 0.08, 0.1)
     love.graphics.rectangle("fill", 0, love.graphics.getHeight() - bottomBarHeight, love.graphics.getWidth(), bottomBarHeight)
-    for _, app in ipairs(apps) do
+    
+    -- Draw start button
+    love.graphics.setColor(0.15, 0.15, 0.2)
+    love.graphics.rectangle("fill", 0, love.graphics.getHeight() - bottomBarHeight, 40, bottomBarHeight)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(startIcon, 10, love.graphics.getHeight() - bottomBarHeight + (bottomBarHeight - 30) / 2, 0, 30/startIcon:getWidth(), 30/startIcon:getHeight())
+    
+    -- Draw visible app icons
+    for _, app in ipairs(visibleApps) do
         local state = "closed"
         for _, window in ipairs(openApps) do
             if window.app == app then
@@ -171,18 +216,17 @@ function drawDesktop()
             end
         end
         
+        local iconMargin = 1
+        local targetIconHeight = app.height - iconMargin * 2
+        local scale = targetIconHeight / app.icon:getHeight()
+        local iconSize = targetIconHeight  -- this will be the square size
 
-		local iconMargin = 1
-		local targetIconHeight = app.height - iconMargin * 2
-		local scale = targetIconHeight / app.icon:getHeight()
-		local iconSize = targetIconHeight  -- this will be the square size
-
-		-- draw background square
-		if state == "maximized" then
-            love.graphics.setColor(0.3, 0.3, 0.3)
+        -- draw background square
+        if state == "maximized" then
+            love.graphics.setColor(0.3, 0.4, 0.5)
 			love.graphics.rectangle("fill", app.x, app.y, iconSize + iconMargin * 2, iconSize + iconMargin * 2)
         elseif state == "minimized" then
-			love.graphics.setColor(0.2, 0.2, 0.2)
+			love.graphics.setColor(0.2, 0.3, 0.4)
 			love.graphics.rectangle("fill", app.x, app.y, iconSize + iconMargin * 2, iconSize + iconMargin * 2)
         end
 
@@ -190,18 +234,84 @@ function drawDesktop()
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.draw(app.icon, app.x + iconMargin, app.y + iconMargin, 0, scale, scale)
     end
+    
+    -- Draw ellipsis button if there are hidden apps
+    if #hiddenApps > 0 then
+        local ellipsisX = love.graphics.getWidth() - 40
+        love.graphics.setColor(0.15, 0.15, 0.2)
+        love.graphics.rectangle("fill", ellipsisX, love.graphics.getHeight() - bottomBarHeight, 40, bottomBarHeight)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(ellipsisIcon, ellipsisX + 10, love.graphics.getHeight() - bottomBarHeight + (bottomBarHeight - 30) / 2, 0, 30/ellipsisIcon:getWidth(), 30/ellipsisIcon:getHeight())
+    end
+
+    -- Draw ellipsis menu if open
+    if ellipsisMenuOpen then
+        love.graphics.setColor(0.15, 0.15, 0.2, 0.95)
+        local menuX = love.graphics.getWidth() - 160
+        local menuY = love.graphics.getHeight() - bottomBarHeight - #hiddenApps * 40 - 10
+        local menuWidth = 150
+        local menuHeight = #hiddenApps * 40 + 10
+        love.graphics.rectangle("fill", menuX, menuY, menuWidth, menuHeight)
+        love.graphics.setColor(0.7, 0.8, 1.0)
+        love.graphics.rectangle("line", menuX, menuY, menuWidth, menuHeight)
+        
+        for i, app in ipairs(hiddenApps) do
+            local appY = menuY + 5 + (i-1)*40
+            love.graphics.setColor(0.3, 0.4, 0.5)
+            love.graphics.rectangle("fill", menuX + 5, appY, 140, 35)
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(app.icon, menuX + 10, appY + 5, 0, 25/app.icon:getWidth(), 25/app.icon:getHeight())
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.print(app.name, menuX + 40, appY + 10)
+        end
+    end
+    
+    -- Draw start menu if open
+    if startMenuOpen then
+        love.graphics.setColor(0.15, 0.15, 0.2, 0.95)
+        local menuX = 5
+        local menuY = love.graphics.getHeight() - bottomBarHeight - 300
+        local menuWidth = 300
+        local menuHeight = 300
+        love.graphics.rectangle("fill", menuX, menuY, menuWidth, menuHeight)
+        love.graphics.setColor(0.7, 0.8, 1.0)
+        love.graphics.rectangle("line", menuX, menuY, menuWidth, menuHeight)
+        
+        love.graphics.setFont(love.graphics.newFont(20))
+        love.graphics.setColor(0.7, 0.8, 1.0)
+        love.graphics.print("Applications", menuX + 10, menuY + 10)
+        love.graphics.setFont(font)
+        
+        -- Draw apps in grid
+        local cols = 3
+        local iconSize = 80
+        local padding = 10
+        for i, app in ipairs(apps) do
+            local col = (i-1) % cols
+            local row = math.floor((i-1) / cols)
+            local x = menuX + 15 + col * (iconSize + padding)
+            local y = menuY + 40 + row * (iconSize + padding)
+            
+            love.graphics.setColor(0.3, 0.4, 0.5, 0.8)
+            love.graphics.rectangle("fill", x, y, iconSize, iconSize)
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(app.icon, x + (iconSize - 40)/2, y + 10, 0, 40/app.icon:getWidth(), 40/app.icon:getHeight())
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.printf(app.name, x, y + 55, iconSize, "center")
+        end
+    end
 
     -- Draw open app windows (existing code unchanged).
     for _, window in ipairs(openApps) do
         if not window.minimized then
             love.graphics.setFont(font)
-            love.graphics.setColor(0.8, 0.8, 0.8)
+            love.graphics.setColor(0.9, 0.9, 0.95)
             love.graphics.rectangle("fill", window.x, window.y, window.width, window.height)
             
             if window == focusedWindow then
                 love.graphics.setColor(0.0, 0.5, 1.0)
             else
-                love.graphics.setColor(0.2, 0.2, 0.2)
+                love.graphics.setColor(0.2, 0.3, 0.4)
             end
             love.graphics.rectangle("fill", window.x, window.y, window.width, 20)
             love.graphics.setColor(1, 1, 1)
@@ -210,12 +320,12 @@ function drawDesktop()
             local btnSize = 20
             local closeX = window.x + window.width - btnSize
             local minX = window.x + window.width - 2 * btnSize
-            love.graphics.setColor(1, 0, 0)
+            love.graphics.setColor(1, 0.3, 0.3)
             love.graphics.rectangle("fill", closeX, window.y, btnSize, btnSize)
             love.graphics.setColor(1, 1, 1)
             love.graphics.print("x", closeX + 5, window.y + 2)
             
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(0.7, 0.8, 1.0)
             love.graphics.rectangle("fill", minX, window.y, btnSize, btnSize)
             love.graphics.setColor(0, 0, 0)
             love.graphics.print("-", minX + 5, window.y + 2)
@@ -232,14 +342,14 @@ function drawDesktop()
             end
             
             local handleSize = 10
-            love.graphics.setColor(0.5, 0.5, 0.5)
+            love.graphics.setColor(0.5, 0.6, 0.7)
             love.graphics.rectangle("fill", window.x + window.width - handleSize, window.y + window.height - handleSize, handleSize, handleSize)
         end
     end
 end
 
 
--- Draw desktop home icons (children of /home) in a grid.
+-- Draw desktop home icons (children of /home) using saved layout.
 function drawDesktopHome()
     desktopHomeIcons = {}  -- reset icons table
     local startX = 10
@@ -251,20 +361,29 @@ function drawDesktopHome()
         -- Iterate through children in /home.
         for name, node in pairs(desktopHome.children) do
             index = index + 1
-            local col = (index - 1) % 4
-            local row = math.floor((index - 1) / 4)
-            local x = startX + col * (iconSize + padding)
-            local y = startY + row * (iconSize + padding)
+            local x, y
+            if desktopLayout[name] then
+                x = desktopLayout[name].x
+                y = desktopLayout[name].y
+            else
+                local col = (index - 1) % 4
+                local row = math.floor((index - 1) / 4)
+                x = startX + col * (iconSize + padding)
+                y = startY + row * (iconSize + padding)
+                desktopLayout[name] = {x = x, y = y}
+            end
             local icon = home_fileIcon  -- default to file icon
             if node.type == "directory" then
-                icon = home_folderIcon  -- you may choose a different icon for directories
+                icon = home_folderIcon
+            elseif node.name:match("%.lnk$") then
+                icon = home_shortcutIcon
             end
             love.graphics.setColor(1, 1, 1)
             love.graphics.draw(icon, x, y, 0, iconSize / icon:getWidth(), iconSize / icon:getHeight())
-            love.graphics.setColor(0, 0, 0)
+            love.graphics.setColor(0.9, 0.95, 1.0)
             love.graphics.printf(name, x, y + iconSize + 2, iconSize, "center")
             -- Save icon's bounding box and node for click detection.
-            table.insert(desktopHomeIcons, {x = x, y = y, width = iconSize, height = iconSize, node = node})
+            table.insert(desktopHomeIcons, {x = x, y = y, width = iconSize, height = iconSize, node = node, name = name})
         end
     end
 end
@@ -272,23 +391,84 @@ end
 
 function love.mousepressed(x, y, button)
     if button == 1 then
+        -- Check start button
+        if x >= 0 and x <= 40 and y >= love.graphics.getHeight() - bottomBarHeight then
+            startMenuOpen = not startMenuOpen
+            ellipsisMenuOpen = false
+            return
+        end
+        
+        -- Check ellipsis button
+        if #hiddenApps > 0 and x >= love.graphics.getWidth() - 40 and x <= love.graphics.getWidth() and y >= love.graphics.getHeight() - bottomBarHeight then
+            ellipsisMenuOpen = not ellipsisMenuOpen
+            startMenuOpen = false
+            return
+        end
+        
+        -- Check ellipsis menu
+        if ellipsisMenuOpen then
+            local menuX = love.graphics.getWidth() - 160
+            local menuY = love.graphics.getHeight() - bottomBarHeight - #hiddenApps * 40 - 10
+            for i, app in ipairs(hiddenApps) do
+                local appY = menuY + 5 + (i-1)*40
+                if x >= menuX + 5 and x <= menuX + 145 and y >= appY and y <= appY + 35 then
+                    toggleApp(app)
+                    ellipsisMenuOpen = false
+                    return
+                end
+            end
+            -- Clicked outside menu, close it
+            ellipsisMenuOpen = false
+        end
+        
+        -- Check start menu
+        if startMenuOpen then
+            local menuX = 5
+            local menuY = love.graphics.getHeight() - bottomBarHeight - 300
+            local cols = 3
+            local iconSize = 80
+            local padding = 10
+            for i, app in ipairs(apps) do
+                local col = (i-1) % cols
+                local row = math.floor((i-1) / cols)
+                local appX = menuX + 15 + col * (iconSize + padding)
+                local appY = menuY + 40 + row * (iconSize + padding)
+                if x >= appX and x <= appX + iconSize and y >= appY and y <= appY + iconSize then
+                    toggleApp(app)
+                    startMenuOpen = false
+                    return
+                end
+            end
+            -- Clicked outside menu, close it
+            startMenuOpen = false
+        end
+        
         -- Check if the click is in the desktop home area.
         for _, icon in ipairs(desktopHomeIcons) do
             if x >= icon.x and x <= icon.x + icon.width and y >= icon.y and y <= icon.y + icon.height then
-                -- Found a desktop icon click. Open FilesApp at icon.node.
-                local FilesApp = require("files")
-                local fileExplorer = FilesApp.new()
-                fileExplorer.cwd = icon.node  -- set explorer to this folder or file's parent.
-                fileExplorer:updateFileList()
-                -- Toggle FilesApp.
-                for i, app in ipairs(apps) do
-                    if app.name == "Files" then
-                        app.instance = fileExplorer
-                        toggleApp(app)
-                        break
+                -- Found a desktop icon click. 
+                if love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl") then
+                    -- Start dragging the icon
+                    draggingIcon = icon
+                    dragIconOffsetX = x - icon.x
+                    dragIconOffsetY = y - icon.y
+                    return
+                else
+                    -- Open FilesApp at icon.node.
+                    local FilesApp = require("files")
+                    local fileExplorer = FilesApp.new(apps, toggleApp)
+                    fileExplorer.cwd = icon.node  -- set explorer to this folder or file's parent.
+                    fileExplorer:updateFileList()
+                    -- Toggle FilesApp.
+                    for i, app in ipairs(apps) do
+                        if app.name == "Files" then
+                            app.instance = fileExplorer
+                            toggleApp(app)
+                            break
+                        end
                     end
+                    return  -- consume the click.
                 end
-                return  -- consume the click.
             end
         end
         -- First, dispatch to Demoji.
@@ -398,7 +578,7 @@ function love.mousepressed(x, y, button)
             end
         end
 
-        for _, app in ipairs(apps) do
+        for _, app in ipairs(visibleApps) do
             if x >= app.x and x <= app.x + app.width and
                y >= app.y and y <= app.y + app.height then
                 toggleApp(app)
@@ -419,6 +599,9 @@ function love.mousemoved(x, y, dx, dy)
     elseif draggingWindow then
         draggingWindow.x = x - dragOffsetX
         draggingWindow.y = y - dragOffsetY
+    elseif draggingIcon then
+        desktopLayout[draggingIcon.name].x = x - dragIconOffsetX
+        desktopLayout[draggingIcon.name].y = y - dragIconOffsetY
     end
 	
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.mousemoved then
@@ -432,6 +615,12 @@ function love.mousereleased(x, y, button)
     if button == 1 then
         draggingWindow = nil
         resizingWindow = nil
+        if draggingIcon then
+            draggingIcon = nil
+            -- Save desktop layout
+            local data = json.encode(desktopLayout)
+            love.filesystem.write("desktop_layout.json", data)
+        end
         -- demojiInstance:mousereleased(x, y, button)
     end
 	
@@ -447,9 +636,9 @@ function love.textinput(text)
 end
 
 function love.keypressed(key)
-    -- if key == "g" then
-        -- effectEnabled = not effectEnabled
-    -- end
+    if key == "g" then
+        effectEnabled = not effectEnabled
+    end
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.keypressed then
         focusedWindow.instance:keypressed(key)
     end
@@ -467,6 +656,7 @@ function love.resize(w, h)
             window.instance:resize(w, h)
         end
     end
+    updateVisibleApps()
 end
 
 function toggleApp(app)
@@ -494,17 +684,6 @@ function toggleApp(app)
             local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
             table.insert(openApps, newWindow)
             setFocus(newWindow)
-		-- elseif app.name == "ImageViewer" and app.instance then
-            -- -- Do not create a new instance; just open the existing one.
-            -- local screenWidth = love.graphics.getWidth()
-            -- local screenHeight = love.graphics.getHeight()
-            -- local windowWidth = 500
-            -- local windowHeight = 300
-            -- local x = (screenWidth - windowWidth) / 2
-            -- local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
-            -- local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
-            -- table.insert(openApps, newWindow)
-            -- setFocus(newWindow)
         else
             app.instance = app.module.new()
             local screenWidth = love.graphics.getWidth()
@@ -519,30 +698,3 @@ function toggleApp(app)
         end
     end
 end
-
-
--- function toggleApp(app)
-    -- local found = nil
-    -- for _, window in ipairs(openApps) do
-        -- if window.app == app then
-            -- found = window
-            -- break
-        -- end
-    -- end
-
-    -- if found then
-        -- found.minimized = not found.minimized
-        -- setFocus(found)
-    -- else
-        -- app.instance = app.module.new()
-        -- local screenWidth = love.graphics.getWidth()
-        -- local screenHeight = love.graphics.getHeight()
-        -- local windowWidth = 500
-        -- local windowHeight = 300
-        -- local x = (screenWidth - windowWidth) / 2
-        -- local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
-        -- local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
-        -- table.insert(openApps, newWindow)
-        -- setFocus(newWindow)
-    -- end
--- end

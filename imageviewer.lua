@@ -26,7 +26,7 @@ function ImageViewer.new(__filepath, fileNode)
     end)
     
     if not success then
-        self.error = "Failed to load image: " .. __filepath
+        self.error = "Failed to load image: " .. tostring(__filepath)
     end
     
     return self
