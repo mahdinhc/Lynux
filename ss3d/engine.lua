@@ -1,5 +1,6 @@
 -- Super Simple 3D Engine v1.2
 -- groverburger 2019
+local pprint = require("../lib/pprint")
 
 local function TransposeMatrix(mat)
 	local m = cpml.mat4.new()
@@ -36,21 +37,53 @@ end
 
 local engine = {}
 
+
 function engine.loadObj(objPath)
     local obj = ObjReader.load(objPath)
-	local faces = {}
-	local verts = {}
-	
-	for i,v in pairs(obj.v) do
-			table.insert(verts, {v.x,v.y,v.z})
-	end
-	for i,v in pairs(obj.f) do
-			table.insert(faces, {verts[v[1].v][1], verts[v[1].v][2], verts[v[1].v][3], obj.vt[v[1].vt].u, obj.vt[v[1].vt].v})
-			table.insert(faces, {verts[v[2].v][1], verts[v[2].v][2], verts[v[2].v][3], obj.vt[v[2].vt].u, obj.vt[v[2].vt].v})
-			table.insert(faces, {verts[v[3].v][1], verts[v[3].v][2], verts[v[3].v][3], obj.vt[v[3].vt].u, obj.vt[v[3].vt].v})
-	end
-	return faces
+    local faces = {}
+    local verts = {}
+
+    for i, v in pairs(obj.v) do
+        table.insert(verts, {v.x, v.y, v.z})
+    end
+
+    for i, v in pairs(obj.f) do
+        for j = 1, 3 do
+            local vi = v[j].v
+            local vertex = verts[vi]
+            local u, t = 0, 0 -- Default UVs if not available
+            if v[j].vt and obj.vt and obj.vt[v[j].vt] then
+                u = obj.vt[v[j].vt].u
+                t = obj.vt[v[j].vt].v
+            end
+            table.insert(faces, {vertex[1], vertex[2], vertex[3], u, t})
+        end
+    end
+
+    return faces
 end
+
+-- function engine.loadObj(objPath)
+    -- local obj = ObjReader.load(objPath)
+	-- local faces = {}
+	-- local verts = {}
+	
+	-- for i,v in pairs(obj.v) do
+			-- table.insert(verts, {v.x,v.y,v.z})
+	-- end
+
+	-- -- pprint(obj.v)
+	-- -- pprint(obj.f)
+	-- for i,v in pairs(obj.f) do
+			-- pprint(v[1])
+			-- pprint(v[2])
+			-- pprint(v[3])
+			-- table.insert(faces, {verts[v[1].v][1], verts[v[1].v][2], verts[v[1].v][3], obj.vt[v[1].vt].u, obj.vt[v[1].vt].v})
+			-- table.insert(faces, {verts[v[2].v][1], verts[v[2].v][2], verts[v[2].v][3], obj.vt[v[2].vt].u, obj.vt[v[2].vt].v})
+			-- table.insert(faces, {verts[v[3].v][1], verts[v[3].v][2], verts[v[3].v][3], obj.vt[v[3].vt].u, obj.vt[v[3].vt].v})
+	-- end
+	-- return faces
+-- end
 
 -- create a new Model object
 -- given a table of verts for example: { {0,0,0}, {0,1,0}, {0,0,1} }

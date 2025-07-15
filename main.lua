@@ -9,6 +9,7 @@ local DinoApp = require("dino")
 local TessarectApp = require("tessarect")
 local ImageViewer = require("imageviewer")
 local ObjViewer = require("objviewer")
+local NexusAI = require("nexusai")
 local filesystemModule = require("filesystem")
 -- local Demoji = require("demoji")  -- require Demoji module
 
@@ -96,6 +97,7 @@ function love.load()
         { name = "Dino", module = DinoApp, instance = nil, icon = dinoIcon },
 		{ name = "ImageViewer", module = ImageViewer, instance = nil, icon = imageviewerIcon },
 		{ name = "ObjViewer", module = ObjViewer, instance = nil, icon = tessarectIcon },
+		{ name = "NexusAI", module = NexusAI, instance = nil, icon = dinoIcon },
     }
 
     iconWidth = 40
@@ -220,7 +222,9 @@ function drawDesktop()
             
             if window.instance and window.instance.draw then
                 love.graphics.setScissor(window.x, window.y+20, window.width, window.height-20)
+				love.graphics.push()
                 window.instance:draw(window.x, window.y + 20, window.width, window.height - 20)
+				love.graphics.pop()
                 love.graphics.setScissor()
             else
                 love.graphics.setColor(0, 0, 0)
@@ -416,6 +420,10 @@ function love.mousemoved(x, y, dx, dy)
         draggingWindow.x = x - dragOffsetX
         draggingWindow.y = y - dragOffsetY
     end
+	
+    if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.mousemoved then
+        focusedWindow.instance:mousemoved(x, y, dx, dy)
+    end
     -- Pass mouse movement to Demoji.
     -- demojiInstance:mousemoved(x, y, dx, dy)
 end
@@ -425,6 +433,10 @@ function love.mousereleased(x, y, button)
         draggingWindow = nil
         resizingWindow = nil
         -- demojiInstance:mousereleased(x, y, button)
+    end
+	
+    if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.mousereleased then
+        focusedWindow.instance:mousereleased(x, y, button)
     end
 end
 
