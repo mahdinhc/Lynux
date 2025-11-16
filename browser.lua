@@ -1,75 +1,218 @@
--- local xml2lua = require("xml2lua")  -- if you wish to encode/decode later
 local BrowserApp = {}
 BrowserApp.__index = BrowserApp
 
 --------------------------------------------------------------------------------
--- Website database using an array‑based XML-like HTML document.
+-- Enhanced Professional Website Database
 --------------------------------------------------------------------------------
 local websiteDatabase = {
   ["http://example.com"] = {
     tag = "div",
     children = {
       { tag = "h1", _text = "Welcome to Example.com", _attr = { align = "center", color = "#003366" } },
-      { tag = "p",  _text = "This is the main page rendered as HTML.", _attr = { bgcolor = "#EEEEEE" } },
-      { tag = "button", _attr = { text = "Google", href = "http://google.com", bgcolor = "#DDDDDD" } },
-      { tag = "input", _attr = { placeholder = "Type here...", value = "", width = "200", height = "30", bgcolor = "#FFFFFF", color="#000000" } },
-      { tag = "input", _attr = { placeholder = "Type here...", value = "", width = "300", height = "30", bgcolor = "#232323", color="#ffffff" } },
-    }
-  },
-  ["http://love2d.org"] = {
-    tag = "div",
-    children = {
-      { tag = "h1", _text = "LOVE2D", _attr = { align = "center", bold = "true" } },
-      { tag = "p",  _text = "Learn about the LOVE2D game framework." },
-      { tag = "img", _attr = { src = "love_logo.png", width = "100", height = "100" } },
-      { tag = "button", _attr = { text = "Visit Example.org", href = "http://example.org" } },
+      { tag = "p",  _text = "This is the main page rendered as HTML.", _attr = { bgcolor = "#f8f9fa" } },
+      { tag = "button", _attr = { text = "Visit Google", href = "http://google.com", bgcolor = "#4285f4", color = "#ffffff" } },
+      { tag = "input", _attr = { placeholder = "Search example.com...", value = "", width = "300", height = "40", bgcolor = "#ffffff", color="#000000", border = "1px solid #ddd" } },
     }
   },
   ["http://google.com"] = {
     tag = "div",
     children = {
-      { tag = "h1", _text = "Google" },
-      { tag = "p",  _text = "Search the web with Google. Woooooh my my my gooood mmm" },
-      { tag = "a",  _attr = { href = "http://example.com", text = "Go to Example.com", underline = "true" } },
+      { tag = "div", _attr = { align = "center", style = "margin-top: 100px" }, children = {
+        { tag = "h1", _text = "Google", _attr = { color = "#4285f4", style = "font-size: 72px; margin-bottom: 20px" } },
+        { tag = "input", _attr = { placeholder = "Search Google or type a URL", value = "", width = "584", height = "44", bgcolor = "#ffffff", color="#000000", border = "1px solid #dfe1e5", radius = "24px" } },
+        { tag = "div", _attr = { style = "margin-top: 20px" }, children = {
+          { tag = "button", _attr = { text = "Google Search", href = "http://google.com/search", bgcolor = "#f8f9fa", color = "#3c4043", border = "1px solid #f8f9fa" } },
+          { tag = "button", _attr = { text = "I'm Feeling Lucky", href = "http://google.com/doodles", bgcolor = "#f8f9fa", color = "#3c4043", border = "1px solid #f8f9fa" } },
+        }}
+      }}
     }
   },
-  ["http://example.org"] = {
+  ["http://github.com"] = {
     tag = "div",
     children = {
-      { tag = "h1", _text = "Example.org" },
-      { tag = "p",  _text = "Another example website with dummy content." },
-      { tag = "button", _attr = { text = "Go Back", action = "back" } },
+      { tag = "nav", _attr = { bgcolor = "#24292f", style = "padding: 16px; color: white" }, children = {
+        { tag = "span", _text = "GitHub", _attr = { style = "font-weight: bold; font-size: 20px" } },
+        { tag = "input", _attr = { placeholder = "Search GitHub...", value = "", width = "300", height = "32", bgcolor = "#24292f", color="#ffffff", border = "1px solid #57606a" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 40px" }, children = {
+        { tag = "h1", _text = "Where the world builds software", _attr = { style = "font-size: 48px; margin-bottom: 20px" } },
+        { tag = "p", _text = "Millions of developers and companies build, ship, and maintain their software on GitHub.", _attr = { style = "font-size: 20px; color: #57606a" } },
+        { tag = "button", _attr = { text = "Sign up for GitHub", href = "http://github.com/signup", bgcolor = "#2da44e", color = "#ffffff" } },
+      }}
     }
   },
+  ["http://stackoverflow.com"] = {
+    tag = "div",
+    children = {
+      { tag = "nav", _attr = { bgcolor = "#f48225", style = "padding: 12px" }, children = {
+        { tag = "span", _text = "Stack Overflow", _attr = { style = "font-weight: bold; color: white; font-size: 18px" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 40px; background: #f8f9f9" }, children = {
+        { tag = "h1", _text = "Every developer has a tab open to Stack Overflow", _attr = { style = "font-size: 36px; margin-bottom: 20px" } },
+        { tag = "input", _attr = { placeholder = "Search...", value = "", width = "600", height = "44", bgcolor = "#ffffff", color="#000000", border = "1px solid #babfc4" } },
+        { tag = "button", _attr = { text = "Ask Question", href = "http://stackoverflow.com/questions/ask", bgcolor = "#0095ff", color = "#ffffff" } },
+      }}
+    }
+  },
+  ["http://linkedin.com"] = {
+    tag = "div",
+    children = {
+      { tag = "nav", _attr = { bgcolor = "#283e4a", style = "padding: 12px" }, children = {
+        { tag = "span", _text = "LinkedIn", _attr = { style = "font-weight: bold; color: white; font-size: 20px" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 60px; background: #f3f6f8" }, children = {
+        { tag = "h1", _text = "Welcome to your professional community", _attr = { style = "font-size: 42px; margin-bottom: 20px" } },
+        { tag = "input", _attr = { placeholder = "Email", value = "", width = "300", height = "40", bgcolor = "#ffffff", color="#000000", border = "1px solid #ccc" } },
+        { tag = "input", _attr = { placeholder = "Password", value = "", width = "300", height = "40", bgcolor = "#ffffff", color="#000000", border = "1px solid #ccc" } },
+        { tag = "button", _attr = { text = "Sign in", href = "http://linkedin.com/feed", bgcolor = "#0073b1", color = "#ffffff" } },
+      }}
+    }
+  },
+  ["http://twitter.com"] = {
+    tag = "div",
+    children = {
+      { tag = "div", _attr = { style = "display: flex; height: 100vh" }, children = {
+        { tag = "div", _attr = { bgcolor = "#1d9bf0", style = "flex: 1; display: flex; align-items: center; justify-content: center" }, children = {
+          { tag = "span", _text = "🐦", _attr = { style = "font-size: 300px" } },
+        }},
+        { tag = "div", _attr = { style = "flex: 1; padding: 60px" }, children = {
+          { tag = "h1", _text = "Happening now", _attr = { style = "font-size: 64px; margin-bottom: 40px" } },
+          { tag = "button", _attr = { text = "Create account", href = "http://twitter.com/signup", bgcolor = "#1d9bf0", color = "#ffffff", style = "width: 300px; height: 40px" } },
+          { tag = "button", _attr = { text = "Sign in", href = "http://twitter.com/login", bgcolor = "#ffffff", color="#1d9bf0", border = "1px solid #1d9bf0", style = "width: 300px; height: 40px" } },
+        }}
+      }}
+    }
+  },
+  ["http://amazon.com"] = {
+    tag = "div",
+    children = {
+      { tag = "nav", _attr = { bgcolor = "#232f3e", style = "padding: 12px; color: white" }, children = {
+        { tag = "span", _text = "amazon", _attr = { style = "font-weight: bold; font-size: 20px" } },
+        { tag = "input", _attr = { placeholder = "Search Amazon...", value = "", width = "600", height = "36", bgcolor = "#ffffff", color="#000000" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 40px; background: #eaeded" }, children = {
+        { tag = "h1", _text = "Welcome to Amazon", _attr = { style = "font-size: 36px; margin-bottom: 20px" } },
+        { tag = "p", _text = "Today's Deals - Electronics - Customer Service - Home", _attr = { style = "font-size: 16px; color: #007185" } },
+      }}
+    }
+  },
+  ["http://reddit.com"] = {
+    tag = "div",
+    children = {
+      { tag = "nav", _attr = { bgcolor = "#ff4500", style = "padding: 12px" }, children = {
+        { tag = "span", _text = "reddit", _attr = { style = "font-weight: bold; color: white; font-size: 20px" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 40px; background: #dae0e6" }, children = {
+        { tag = "h1", _text = "The front page of the internet", _attr = { style = "font-size: 36px; margin-bottom: 20px" } },
+        { tag = "div", _attr = { style = "background: white; padding: 20px; border-radius: 4px" }, children = {
+          { tag = "p", _text = "Popular Posts", _attr = { style = "font-weight: bold" } },
+          { tag = "p", _text = "• TIL that...", _attr = { color = "#787c7e" } },
+          { tag = "p", _text = "• What's your unpopular opinion?", _attr = { color = "#787c7e" } },
+        }}
+      }}
+    }
+  },
+  ["http://youtube.com"] = {
+    tag = "div",
+    children = {
+      { tag = "nav", _attr = { bgcolor = "#ff0000", style = "padding: 12px; color: white" }, children = {
+        { tag = "span", _text = "YouTube", _attr = { style = "font-weight: bold; font-size: 20px" } },
+        { tag = "input", _attr = { placeholder = "Search", value = "", width = "400", height = "32", bgcolor = "#121212", color="#ffffff" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 20px; background: #181818" }, children = {
+        { tag = "h1", _text = "Welcome to YouTube", _attr = { color = "#ffffff" } },
+        { tag = "p", _text = "Enjoy your favorite videos and music", _attr = { color = "#aaaaaa" } },
+      }}
+    }
+  },
+  ["http://microsoft.com"] = {
+    tag = "div",
+    children = {
+      { tag = "nav", _attr = { style = "padding: 16px; border-bottom: 1px solid #d2d2d2" }, children = {
+        { tag = "span", _text = "Microsoft", _attr = { style = "font-weight: bold; font-size: 20px; color: #737373" } },
+      }},
+      { tag = "div", _attr = { style = "padding: 80px; text-align: center" }, children = {
+        { tag = "h1", _text = "Empowering every person and every organization on the planet to achieve more", _attr = { style = "font-size: 32px; margin-bottom: 20px" } },
+        { tag = "button", _attr = { text = "Learn more", href = "http://microsoft.com/about", bgcolor = "#0067b8", color = "#ffffff" } },
+      }}
+    }
+  }
 }
 
 --------------------------------------------------------------------------------
--- Helper: parse a color string ("#RRGGBB" or "r,g,b")
+-- Enhanced Color Parser with CSS-style colors
 --------------------------------------------------------------------------------
 function BrowserApp:parseColor(colorStr)
   if type(colorStr) ~= "string" then return nil end
-  if string.sub(colorStr,1,1) == "#" and #colorStr == 7 then
+  
+  -- Hex colors
+  if string.sub(colorStr,1,1) == "#" then
+    if #colorStr == 7 then  -- #RRGGBB
       local r = tonumber(string.sub(colorStr,2,3), 16) / 255
       local g = tonumber(string.sub(colorStr,4,5), 16) / 255
       local b = tonumber(string.sub(colorStr,6,7), 16) / 255
       return r, g, b
-  else
-      local r, g, b = colorStr:match("([^,]+),([^,]+),([^,]+)")
-      if r and g and b then
-          return tonumber(r), tonumber(g), tonumber(b)
-      end
+    elseif #colorStr == 4 then  -- #RGB
+      local r = tonumber(string.sub(colorStr,2,2), 16) / 15
+      local g = tonumber(string.sub(colorStr,3,3), 16) / 15
+      local b = tonumber(string.sub(colorStr,4,4), 16) / 15
+      return r, g, b
+    end
   end
+  
+  -- RGB format
+  local r, g, b = colorStr:match("rgb%((%d+),%s*(%d+),%s*(%d+)%)")
+  if r and g and b then
+    return tonumber(r)/255, tonumber(g)/255, tonumber(b)/255
+  end
+  
+  -- Named colors
+  local namedColors = {
+    red = {1, 0, 0},
+    green = {0, 0.5, 0},
+    blue = {0, 0, 1},
+    white = {1, 1, 1},
+    black = {0, 0, 0},
+    gray = {0.5, 0.5, 0.5},
+    yellow = {1, 1, 0},
+    orange = {1, 0.65, 0},
+    purple = {0.5, 0, 0.5},
+  }
+  
+  if namedColors[colorStr:lower()] then
+    local color = namedColors[colorStr:lower()]
+    return color[1], color[2], color[3]
+  end
+  
+  -- Comma-separated values (0-255 or 0.0-1.0)
+  local r, g, b = colorStr:match("([^,]+),([^,]+),([^,]+)")
+  if r and g and b then
+    r, g, b = tonumber(r), tonumber(g), tonumber(b)
+    if r and g and b then
+      if r > 1 or g > 1 or b > 1 then  -- Assume 0-255 range
+        return r/255, g/255, b/255
+      else  -- Assume 0.0-1.0 range
+        return r, g, b
+      end
+    end
+  end
+  
   return nil
 end
 
 --------------------------------------------------------------------------------
--- Helper: collect style attributes from an element's _attr.
--- Supported: align, color, bgcolor, bold, italic, underline
+-- Enhanced Style Collection with CSS-like properties
 --------------------------------------------------------------------------------
 function BrowserApp:collectStyles(element)
   local styles = {}
   if element._attr then
+    -- Text alignment
     if element._attr.align then styles.align = element._attr.align end
+    if element._attr.style and element._attr.style:match("text%-align:") then
+      styles.align = element._attr.style:match("text%-align:%s*([^;]+)")
+    end
+    
+    -- Colors
     if element._attr.color then 
       local r, g, b = self:parseColor(element._attr.color)
       if r then styles.color = {r, g, b} end
@@ -78,19 +221,44 @@ function BrowserApp:collectStyles(element)
       local r, g, b = self:parseColor(element._attr.bgcolor)
       if r then styles.bgcolor = {r, g, b} end
     end
+    
+    -- Text styles
     if element._attr.bold then styles.bold = (element._attr.bold == "true" or element._attr.bold == true) end
     if element._attr.italic then styles.italic = (element._attr.italic == "true" or element._attr.italic == true) end
     if element._attr.underline then styles.underline = (element._attr.underline == "true" or element._attr.underline == true) end
+    
+    -- Border and radius
+    if element._attr.border then styles.border = element._attr.border end
+    if element._attr.radius then styles.radius = element._attr.radius end
+    
+    -- Parse style attribute for CSS-like properties
+    if element._attr.style then
+      for prop, value in element._attr.style:gmatch("([%w-]+):%s*([^;]+)") do
+        if prop == "margin" or prop == "padding" then
+          styles[prop] = value
+        elseif prop == "font-size" then
+          styles.fontSize = value
+        elseif prop == "font-weight" then
+          styles.bold = (value == "bold")
+        elseif prop == "background-color" then
+          local r, g, b = self:parseColor(value)
+          if r then styles.bgcolor = {r, g, b} end
+        elseif prop == "color" then
+          local r, g, b = self:parseColor(value)
+          if r then styles.color = {r, g, b} end
+        end
+      end
+    end
   end
   return styles
 end
 
 --------------------------------------------------------------------------------
--- BrowserApp Constructor and URL Handling
+-- Enhanced BrowserApp Constructor
 --------------------------------------------------------------------------------
 function BrowserApp.new()
   local self = setmetatable({}, BrowserApp)
-  self.url = "http://example.com"
+  self.url = "http://google.com"
   self.htmlContent = websiteDatabase[self.url] or {
       tag = "div",
       children = { { tag = "p", _text = "404 Page Not Found: " .. self.url } }
@@ -106,21 +274,171 @@ function BrowserApp.new()
   self.h4Font = love.graphics.newFont(16)
   self.h5Font = love.graphics.newFont(14)
   self.h6Font = love.graphics.newFont(12)
-  -- love.graphics.setFont(self.defaultFont)
   self.scrollOffset = 0
-  self.scrollSpeed = 20  -- pixels per scroll
+  self.scrollSpeed = 20
   self.maxScroll = 0
   self.loading = false
   self.loadingTimer = 0
   self.loadingDuration = 0
-  -- For text editing in the URL bar:
   self.urlCursor = #self.url + 1
   self.urlCursorTimer = 0
   self.urlCursorVisible = true
-  -- active input field (if any) for in-page <input> tags.
   self.activeInput = nil
+  self.windowWidth = 800
+  self.windowHeight = 600
   return self
 end
+
+--------------------------------------------------------------------------------
+-- Enhanced Input Field Rendering with Better Cursor Handling
+--------------------------------------------------------------------------------
+function BrowserApp:renderInputField(element, x, y, maxWidth)
+  local styles = self:collectStyles(element)
+  local inWidth = tonumber(element._attr and element._attr.width) or 150
+  local inHeight = tonumber(element._attr and element._attr.height) or 30
+  local value = element._attr and element._attr.value or ""
+  local placeholder = element._attr and element._attr.placeholder or ""
+  
+  -- Background color
+  local baseBgColor = {1, 1, 1}
+  if styles.bgcolor then
+    baseBgColor = styles.bgcolor
+  end
+  
+  -- Border color
+  local borderColor = {0.7, 0.7, 0.7}
+  if self.activeInput and self.activeInput.element == element then
+    borderColor = {0.2, 0.5, 1}
+  end
+  
+  -- Hover effect
+  local mx, my = love.mouse.getPosition()
+  local hovered = (mx >= x and mx <= x+inWidth and my >= y and my <= y+inHeight)
+  if hovered then
+    baseBgColor = {baseBgColor[1]*0.95, baseBgColor[2]*0.95, baseBgColor[3]*0.95}
+  end
+  
+  -- Draw input background with border
+  love.graphics.setColor(unpack(baseBgColor))
+  love.graphics.rectangle("fill", x, y, inWidth, inHeight, 4, 4)
+  love.graphics.setColor(unpack(borderColor))
+  love.graphics.rectangle("line", x, y, inWidth, inHeight, 4, 4)
+  
+  -- Draw text
+  love.graphics.setColor(0, 0, 0)
+  if value == "" then
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf(placeholder, x + 8, y + (inHeight - self.defaultFont:getHeight()) / 2, inWidth - 16, "left")
+  else
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.printf(value, x + 8, y + (inHeight - self.defaultFont:getHeight()) / 2, inWidth - 16, "left")
+  end
+  
+  -- Draw cursor
+  if self.activeInput and self.activeInput.element == element then
+    local cursorPos = self.activeInput.cursor or (#value + 1)
+    local beforeCursor = value:sub(1, cursorPos - 1)
+    local cursorX = x + 8 + self.defaultFont:getWidth(beforeCursor)
+    if self.activeInput.cursorVisible then
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.rectangle("fill", cursorX, y + 6, 2, inHeight - 12)
+    end
+  end
+  
+  love.graphics.setColor(1, 1, 1)
+  
+  -- Register clickable region
+  table.insert(self.buttonRegions, {
+      x = x,
+      y = y - self.scrollOffset,
+      width = inWidth,
+      height = inHeight,
+      onClick = function()
+          self.activeInput = { 
+            element = element, 
+            cursor = math.min(#value + 1, self:getCursorPosition(value, x + 8, mx)), 
+            cursorTimer = 0, 
+            cursorVisible = true 
+          }
+      end
+  })
+  
+  return inHeight + 10
+end
+
+-- Helper to calculate cursor position based on click
+function BrowserApp:getCursorPosition(text, startX, clickX)
+  local currentX = startX
+  for i = 1, #text do
+    local charWidth = self.defaultFont:getWidth(text:sub(i, i))
+    if clickX < currentX + charWidth / 2 then
+      return i
+    end
+    currentX = currentX + charWidth
+  end
+  return #text + 1
+end
+
+--------------------------------------------------------------------------------
+-- Enhanced Button Rendering
+--------------------------------------------------------------------------------
+function BrowserApp:renderButton(element, x, y, maxWidth)
+  local styles = self:collectStyles(element)
+  local btnWidth = tonumber(element._attr and element._attr.width) or 150
+  local btnHeight = tonumber(element._attr and element._attr.height) or 36
+  local baseColor = {0.2, 0.6, 1}
+  
+  if styles.bgcolor then
+    baseColor = styles.bgcolor
+  end
+  
+  -- Text color
+  local textColor = {1, 1, 1}
+  if styles.color then
+    textColor = styles.color
+  end
+  
+  -- Hover effect
+  local mx, my = love.mouse.getPosition()
+  local hovered = (mx >= x and mx <= x+btnWidth and my >= y and my <= y+btnHeight)
+  if hovered then
+    baseColor = {math.min(1, baseColor[1]*1.1), math.min(1, baseColor[2]*1.1), math.min(1, baseColor[3]*1.1)}
+  end
+  
+  -- Draw button with shadow and rounded corners
+  love.graphics.setColor(0, 0, 0, 0.1)
+  love.graphics.rectangle("fill", x+2, y+2, btnWidth, btnHeight, 6, 6)
+  
+  love.graphics.setColor(unpack(baseColor))
+  love.graphics.rectangle("fill", x, y, btnWidth, btnHeight, 6, 6)
+  
+  -- Border
+  love.graphics.setColor(unpack(baseColor))
+  love.graphics.rectangle("line", x, y, btnWidth, btnHeight, 6, 6)
+  
+  -- Button text
+  love.graphics.setColor(unpack(textColor))
+  local buttonText = (element._attr and element._attr.text) or ""
+  love.graphics.printf(buttonText, x, y + (btnHeight - self.defaultFont:getHeight()) / 2, btnWidth, "center")
+  
+  table.insert(self.buttonRegions, {
+      x = x,
+      y = y - self.scrollOffset,
+      width = btnWidth,
+      height = btnHeight,
+      onClick = function()
+          if element._attr and element._attr.href then
+              self:loadURL(element._attr.href)
+          elseif element._attr and element._attr.action == "back" then
+              self:back()
+          end
+      end
+  })
+  
+  love.graphics.setColor(1, 1, 1)
+  return btnHeight + 10
+end
+
 
 function BrowserApp:setURL(url)
   self.url = url

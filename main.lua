@@ -46,6 +46,13 @@ ellipsisMenuOpen = false
 visibleApps = {}
 hiddenApps = {}
 
+-- Start menu scroll variables
+local startMenuScroll = 0
+local startMenuMaxScroll = 0
+local scrollBarHeight = 0
+local scrollBarDragging = false
+local scrollBarDragOffset = 0
+
 -- Utility function to set focus on a window.
 local function setFocus(window)
     for i, win in ipairs(openApps) do
@@ -57,7 +64,6 @@ local function setFocus(window)
     table.insert(openApps, window)
     focusedWindow = window
 end
-
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -268,29 +274,41 @@ function drawDesktop()
     
     -- Draw start menu if open
     if startMenuOpen then
-        love.graphics.setColor(0.15, 0.15, 0.2, 0.95)
         local menuX = 5
         local menuY = love.graphics.getHeight() - bottomBarHeight - 300
         local menuWidth = 300
         local menuHeight = 300
+        
+        -- Calculate content height
+        local headerHeight = 40
+        local cols = 3
+        local iconSize = 80
+        local padding = 10
+        local rows = math.ceil(#apps / cols)
+        local contentHeight = headerHeight + rows * (iconSize + padding) + padding
+        
+        -- Update max scroll
+        startMenuMaxScroll = math.max(0, contentHeight - menuHeight)
+        
+        love.graphics.setColor(0.15, 0.15, 0.2, 0.95)
         love.graphics.rectangle("fill", menuX, menuY, menuWidth, menuHeight)
         love.graphics.setColor(0.7, 0.8, 1.0)
         love.graphics.rectangle("line", menuX, menuY, menuWidth, menuHeight)
         
+        -- Set scissor for content area
+        love.graphics.setScissor(menuX, menuY + headerHeight, menuWidth - 15, menuHeight - headerHeight)
+        
         love.graphics.setFont(love.graphics.newFont(20))
         love.graphics.setColor(0.7, 0.8, 1.0)
-        love.graphics.print("Applications", menuX + 10, menuY + 10)
+        love.graphics.print("Applications", menuX + 10, menuY + 10 - startMenuScroll)
         love.graphics.setFont(font)
         
-        -- Draw apps in grid
-        local cols = 3
-        local iconSize = 80
-        local padding = 10
+        -- Draw apps in grid with scroll offset
         for i, app in ipairs(apps) do
             local col = (i-1) % cols
             local row = math.floor((i-1) / cols)
             local x = menuX + 15 + col * (iconSize + padding)
-            local y = menuY + 40 + row * (iconSize + padding)
+            local y = menuY + headerHeight + 5 + row * (iconSize + padding) - startMenuScroll
             
             love.graphics.setColor(0.3, 0.4, 0.5, 0.8)
             love.graphics.rectangle("fill", x, y, iconSize, iconSize)
@@ -298,6 +316,25 @@ function drawDesktop()
             love.graphics.draw(app.icon, x + (iconSize - 40)/2, y + 10, 0, 40/app.icon:getWidth(), 40/app.icon:getHeight())
             love.graphics.setColor(1, 1, 1)
             love.graphics.printf(app.name, x, y + 55, iconSize, "center")
+        end
+        
+        love.graphics.setScissor()
+        
+        -- Draw scrollbar if needed
+        if startMenuMaxScroll > 0 then
+            local scrollBarWidth = 10
+            local scrollBarX = menuX + menuWidth - scrollBarWidth - 2
+            local scrollTrackHeight = menuHeight - headerHeight
+            scrollBarHeight = (menuHeight / contentHeight) * scrollTrackHeight
+            
+            -- Scroll track
+            love.graphics.setColor(0.1, 0.1, 0.15, 0.8)
+            love.graphics.rectangle("fill", scrollBarX, menuY + headerHeight, scrollBarWidth, scrollTrackHeight)
+            
+            -- Scroll thumb
+            local scrollThumbY = menuY + headerHeight + (startMenuScroll / startMenuMaxScroll) * (scrollTrackHeight - scrollBarHeight)
+            love.graphics.setColor(0.5, 0.6, 0.7, 0.8)
+            love.graphics.rectangle("fill", scrollBarX, scrollThumbY, scrollBarWidth, scrollBarHeight)
         end
     end
 
@@ -348,7 +385,6 @@ function drawDesktop()
     end
 end
 
-
 -- Draw desktop home icons (children of /home) using saved layout.
 function drawDesktopHome()
     desktopHomeIcons = {}  -- reset icons table
@@ -388,7 +424,6 @@ function drawDesktopHome()
     end
 end
 
-
 function love.mousepressed(x, y, button)
     if button == 1 then
         -- Check start button
@@ -425,6 +460,25 @@ function love.mousepressed(x, y, button)
         if startMenuOpen then
             local menuX = 5
             local menuY = love.graphics.getHeight() - bottomBarHeight - 300
+            local menuWidth = 300
+            local headerHeight = 40
+            
+            -- Check scrollbar
+            if startMenuMaxScroll > 0 then
+                local scrollBarWidth = 10
+                local scrollBarX = menuX + menuWidth - scrollBarWidth - 2
+                local scrollTrackHeight = 300 - headerHeight
+                local scrollThumbY = menuY + headerHeight + (startMenuScroll / startMenuMaxScroll) * (scrollTrackHeight - scrollBarHeight)
+                
+                if x >= scrollBarX and x <= scrollBarX + scrollBarWidth and 
+                   y >= scrollThumbY and y <= scrollThumbY + scrollBarHeight then
+                    scrollBarDragging = true
+                    scrollBarDragOffset = y - scrollThumbY
+                    return
+                end
+            end
+            
+            -- Check app icons
             local cols = 3
             local iconSize = 80
             local padding = 10
@@ -432,7 +486,8 @@ function love.mousepressed(x, y, button)
                 local col = (i-1) % cols
                 local row = math.floor((i-1) / cols)
                 local appX = menuX + 15 + col * (iconSize + padding)
-                local appY = menuY + 40 + row * (iconSize + padding)
+                local appY = menuY + headerHeight + 5 + row * (iconSize + padding) - startMenuScroll
+                
                 if x >= appX and x <= appX + iconSize and y >= appY and y <= appY + iconSize then
                     toggleApp(app)
                     startMenuOpen = false
@@ -602,6 +657,13 @@ function love.mousemoved(x, y, dx, dy)
     elseif draggingIcon then
         desktopLayout[draggingIcon.name].x = x - dragIconOffsetX
         desktopLayout[draggingIcon.name].y = y - dragIconOffsetY
+    elseif scrollBarDragging then
+        local menuY = love.graphics.getHeight() - bottomBarHeight - 300
+        local headerHeight = 40
+        local scrollTrackHeight = 300 - headerHeight
+        local relativeY = y - menuY - headerHeight - scrollBarDragOffset
+        startMenuScroll = (relativeY / (scrollTrackHeight - scrollBarHeight)) * startMenuMaxScroll
+        startMenuScroll = math.max(0, math.min(startMenuScroll, startMenuMaxScroll))
     end
 	
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.mousemoved then
@@ -615,6 +677,7 @@ function love.mousereleased(x, y, button)
     if button == 1 then
         draggingWindow = nil
         resizingWindow = nil
+        scrollBarDragging = false
         if draggingIcon then
             draggingIcon = nil
             -- Save desktop layout
@@ -626,6 +689,18 @@ function love.mousereleased(x, y, button)
 	
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.mousereleased then
         focusedWindow.instance:mousereleased(x, y, button)
+    end
+end
+
+function love.wheelmoved(x, y)
+    if startMenuOpen then
+        startMenuScroll = startMenuScroll - y * 20
+        startMenuScroll = math.max(0, math.min(startMenuScroll, startMenuMaxScroll))
+        return
+    end
+    
+    if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.wheelmoved then
+        focusedWindow.instance:wheelmoved(x, y)
     end
 end
 
@@ -641,12 +716,6 @@ function love.keypressed(key)
     end
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.keypressed then
         focusedWindow.instance:keypressed(key)
-    end
-end
-
-function love.wheelmoved(x, y)
-    if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.wheelmoved then
-        focusedWindow.instance:wheelmoved(x, y)
     end
 end
 
