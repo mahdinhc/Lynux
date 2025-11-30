@@ -13,6 +13,7 @@ local ImageViewer = require("imageviewer")
 local ObjViewer = require("objviewer")
 local NexusAI = require("nexusai")
 local SettingsApp = require("settings")
+local PokerApp = require("poker")
 local filesystemModule = require("filesystem")
 
 effect = moonshine(moonshine.effects.scanlines).chain(moonshine.effects.crt)
@@ -532,8 +533,8 @@ function drawDesktop()
     for _, window in ipairs(openApps) do
         if not window.minimized then
             love.graphics.setFont(font)
-            love.graphics.setColor(0.9, 0.9, 0.95)
-            love.graphics.rectangle("fill", window.x, window.y, window.width, window.height)
+            -- love.graphics.setColor(0.9, 0.9, 0.95)
+            -- love.graphics.rectangle("fill", window.x, window.y, window.width, window.height)
             
             if window == focusedWindow then
                 love.graphics.setColor(0.0, 0.5, 1.0)
@@ -642,6 +643,7 @@ function love.load()
     startIcon = love.graphics.newImage("assets/layers.png")
     ellipsisIcon = love.graphics.newImage("assets/option.png")
     settingsIcon = love.graphics.newImage("assets/settings.png")
+	pokerIcon = love.graphics.newImage("assets/dino.png")
     
     local sharedFS = filesystemModule.getFS()
     -- Ensure there is a "/home" folder in the root.
@@ -677,6 +679,7 @@ function love.load()
         { name = "ObjViewer", module = ObjViewer, instance = nil, icon = objviewerIcon },
         { name = "NexusAI", module = NexusAI, instance = nil, icon = chatIcon },
         { name = "Settings", module = SettingsApp, instance = nil, icon = settingsIcon },
+        { name = "Poker", module = PokerApp, instance = nil, icon = pokerIcon },
     }
 
     iconWidth = 40
@@ -724,15 +727,15 @@ end
 function love.draw()
     screenWidth = love.graphics.getWidth()
     screenHeight = love.graphics.getHeight()
-    
-    -- Draw wallpaper first
-    drawWallpaper()
+
     
     if effectEnabled then
         effect(function()
+			drawWallpaper()
             drawDesktop()
         end)
     else
+		drawWallpaper()
         drawDesktop()
     end
     
@@ -1076,7 +1079,7 @@ function love.textinput(text)
 end
 
 function love.keypressed(key)
-    if key == "g" then
+    if key == "g" and love.keyboard.isDown("lctrl") then
         effectEnabled = not effectEnabled
     end
     if focusedWindow and (not focusedWindow.minimized) and focusedWindow.instance and focusedWindow.instance.keypressed then

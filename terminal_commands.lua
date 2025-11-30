@@ -313,27 +313,27 @@ local inlineSubstitutions = {
         if args[1] == "preset" then
             local presets = {
                 classic = {
-                    background = {0.05, 0.05, 0.1},
+                    background = {0.05, 0.05, 0.1, 0.8},
                     text = {0.8, 1, 0.8},
                     prompt = {0.2, 0.8, 1}
                 },
                 dark = {
-                    background = {0.1, 0.1, 0.1},
+                    background = {0.1, 0.1, 0.1, 0.8},
                     text = {0.9, 0.9, 0.9},
                     prompt = {0, 0.8, 0}
                 },
                 blue = {
-                    background = {0, 0.1, 0.2},
+                    background = {0, 0.1, 0.2, 0.8},
                     text = {0.7, 0.9, 1},
                     prompt = {0.2, 0.6, 1}
                 },
                 green = {
-                    background = {0, 0.1, 0},
+                    background = {0, 0.1, 0, 0.8},
                     text = {0.6, 1, 0.6},
                     prompt = {0.2, 1, 0.2}
                 },
                 amber = {
-                    background = {0.1, 0.08, 0},
+                    background = {0.1, 0.08, 0, 0.6},
                     text = {1, 0.8, 0.3},
                     prompt = {1, 0.6, 0}
                 }

@@ -56,7 +56,7 @@ local spritesheet = nil
 ------------------------------------------------------------
 local function getRandomNum(min, max)
   return math.floor(math.random() * (max - min + 1)) + min
-end
+  end
 
 local function checkCollision(a, b)
   -- Simple AABB collision with some tolerance
@@ -538,6 +538,11 @@ function dinoApp:update(dt)
 end
 
 function dinoApp:draw(offsetX, offsetY, width, height)
+
+   -- Draw background
+  love.graphics.setColor(0.1, 0.1, 0.1)
+  love.graphics.rectangle("fill", offsetX, offsetY, width, height)
+
   love.graphics.push()
   love.graphics.translate(offsetX, offsetY)
   

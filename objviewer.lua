@@ -55,6 +55,10 @@ end
 function ObjViewer:draw(x, y, width, height)
     -- Store window dimensions for input handling
     self.windowX, self.windowY, self.windowWidth, self.windowHeight = x, y, width, height
+	
+    -- Draw background
+    love.graphics.setColor(0.1, 0.1, 0.1)
+    love.graphics.rectangle("fill", x, y, width, height)
 
     -- Draw error message if any
     if self.error then
