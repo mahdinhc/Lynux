@@ -6,7 +6,7 @@ local filesystem = {}
 -- The shared file system instance (lazy loaded)
 local sharedFS = nil
 
--- Recursively “sanitize” a node so it can be saved (remove parent pointers, etc.)
+-- Recursively "sanitize" a node so it can be saved (remove parent pointers, etc.)
 function filesystem.sanitize(node)
     local t = { name = node.name, type = node.type }
     if node.type == "directory" then
@@ -87,6 +87,59 @@ function filesystem.getPath(node)
     else
         return table.concat(parts, "/")
     end
+end
+
+-- Create a new directory
+function filesystem.createDirectory(parent, name)
+    if not parent.children then
+        parent.children = {}
+    end
+    
+    -- Ensure unique name
+    local baseName = name
+    local counter = 1
+    while parent.children[name] do
+        name = baseName .. " (" .. counter .. ")"
+        counter = counter + 1
+    end
+    
+    parent.children[name] = {
+        name = name,
+        type = "directory",
+        parent = parent,
+        children = {}
+    }
+    
+    filesystem.save(filesystem.getFS())
+    return parent.children[name]
+end
+
+-- Create a new file
+function filesystem.createFile(parent, name, content)
+    if not parent.children then
+        parent.children = {}
+    end
+    
+    content = content or ""
+    
+    -- Ensure unique name
+    local baseName = name:gsub("%..+$", "")
+    local ext = name:match("(%..+)$") or ""
+    local counter = 1
+    while parent.children[name] do
+        name = baseName .. " (" .. counter .. ")" .. ext
+        counter = counter + 1
+    end
+    
+    parent.children[name] = {
+        name = name,
+        type = "file",
+        parent = parent,
+        content = content
+    }
+    
+    filesystem.save(filesystem.getFS())
+    return parent.children[name]
 end
 
 -- Generate a tree view (array of strings) for a directory.
