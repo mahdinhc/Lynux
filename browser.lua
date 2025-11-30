@@ -2,10 +2,11 @@ local BrowserApp = {}
 BrowserApp.__index = BrowserApp
 
 --------------------------------------------------------------------------------
--- Enhanced Professional Website Database
+-- Enhanced Professional Website Database with Functional Websites
 --------------------------------------------------------------------------------
 local websiteDatabase = {
   ["http://example.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "h1", _text = "Welcome to Example.com", _attr = { align = "center", color = "#003366" } },
@@ -15,6 +16,7 @@ local websiteDatabase = {
     }
   },
   ["http://google.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "div", _attr = { align = "center", style = "margin-top: 100px" }, children = {
@@ -28,6 +30,7 @@ local websiteDatabase = {
     }
   },
   ["http://github.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "nav", _attr = { bgcolor = "#24292f", style = "padding: 16px; color: white" }, children = {
@@ -42,6 +45,7 @@ local websiteDatabase = {
     }
   },
   ["http://stackoverflow.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "nav", _attr = { bgcolor = "#f48225", style = "padding: 12px" }, children = {
@@ -55,6 +59,7 @@ local websiteDatabase = {
     }
   },
   ["http://linkedin.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "nav", _attr = { bgcolor = "#283e4a", style = "padding: 12px" }, children = {
@@ -69,6 +74,7 @@ local websiteDatabase = {
     }
   },
   ["http://twitter.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "div", _attr = { style = "display: flex; height: 100vh" }, children = {
@@ -84,6 +90,7 @@ local websiteDatabase = {
     }
   },
   ["http://amazon.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "nav", _attr = { bgcolor = "#232f3e", style = "padding: 12px; color: white" }, children = {
@@ -97,22 +104,45 @@ local websiteDatabase = {
     }
   },
   ["http://reddit.com"] = {
-    tag = "div",
-    children = {
-      { tag = "nav", _attr = { bgcolor = "#ff4500", style = "padding: 12px" }, children = {
-        { tag = "span", _text = "reddit", _attr = { style = "font-weight: bold; color: white; font-size: 20px" } },
-      }},
-      { tag = "div", _attr = { style = "padding: 40px; background: #dae0e6" }, children = {
-        { tag = "h1", _text = "The front page of the internet", _attr = { style = "font-size: 36px; margin-bottom: 20px" } },
-        { tag = "div", _attr = { style = "background: white; padding: 20px; border-radius: 4px" }, children = {
-          { tag = "p", _text = "Popular Posts", _attr = { style = "font-weight: bold" } },
-          { tag = "p", _text = "• TIL that...", _attr = { color = "#787c7e" } },
-          { tag = "p", _text = "• What's your unpopular opinion?", _attr = { color = "#787c7e" } },
-        }}
-      }}
+    type = "functional",
+    functionalType = "forum",
+    title = "Reddit",
+    description = "The front page of the internet",
+    posts = {
+      {
+        id = 1,
+        title = "TIL that honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly good to eat.",
+        author = "u/history_fan",
+        upvotes = 15420,
+        comments = 842,
+        subreddit = "r/todayilearned",
+        timestamp = "5 hours ago"
+      },
+      {
+        id = 2,
+        title = "What's your unpopular opinion that you're willing to defend?",
+        author = "u/curious_mind",
+        upvotes = 8921,
+        comments = 3247,
+        subreddit = "r/askreddit",
+        timestamp = "2 hours ago"
+      },
+      {
+        id = 3,
+        title = "My cat learned how to open doors and now I have to child-proof my entire house",
+        author = "u/cat_owner_problems",
+        upvotes = 7563,
+        comments = 421,
+        subreddit = "r/cats",
+        timestamp = "7 hours ago"
+      }
+    },
+    subreddits = {
+      "r/all", "r/popular", "r/funny", "r/askreddit", "r/gaming", "r/movies", "r/music", "r/science", "r/programming"
     }
   },
   ["http://youtube.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "nav", _attr = { bgcolor = "#ff0000", style = "padding: 12px; color: white" }, children = {
@@ -126,6 +156,7 @@ local websiteDatabase = {
     }
   },
   ["http://microsoft.com"] = {
+    type = "normal",
     tag = "div",
     children = {
       { tag = "nav", _attr = { style = "padding: 16px; border-bottom: 1px solid #d2d2d2" }, children = {
@@ -133,8 +164,82 @@ local websiteDatabase = {
       }},
       { tag = "div", _attr = { style = "padding: 80px; text-align: center" }, children = {
         { tag = "h1", _text = "Empowering every person and every organization on the planet to achieve more", _attr = { style = "font-size: 32px; margin-bottom: 20px" } },
-        { tag = "button", _attr = { text = "Learn more", href = "http://microsoft.com/about", bgcolor = "#0067b8", color = "#ffffff" } },
+        { tag = "button", _attr = { text = "Learn more", href = "http://microsoft.com/about", bgcolor = "#0067b1", color = "#ffffff" } },
       }}
+    }
+  },
+  ["http://search.com"] = {
+    type = "functional",
+    functionalType = "search",
+    title = "Search Engine",
+    description = "Search the web",
+    searchResults = {
+      {
+        title = "LÖVE - Free 2D Game Engine",
+        url = "https://love2d.org",
+        description = "LÖVE is an awesome framework you can use to make 2D games in Lua. It's free, open-source, and works on Windows, Mac OS X, Linux, Android and iOS."
+      },
+      {
+        title = "Lua Programming Language",
+        url = "https://lua.org",
+        description = "Official website of the Lua programming language. Lua is a powerful, efficient, lightweight, embeddable scripting language."
+      },
+      {
+        title = "Love2D Community Forums",
+        url = "https://love2d.org/forums",
+        description = "Official community forums for LÖVE game engine. Get help, share your projects, and connect with other developers."
+      }
+    }
+  },
+  ["http://forum.com"] = {
+    type = "functional",
+    functionalType = "forum",
+    title = "Community Forum",
+    description = "Discuss and share ideas",
+    posts = {
+      {
+        id = 1,
+        title = "Welcome to our new forum!",
+        author = "Admin",
+        content = "We're excited to launch our new community forum. Feel free to introduce yourself!",
+        replies = 24,
+        timestamp = "2024-01-15"
+      },
+      {
+        id = 2,
+        title = "How to get started with Love2D?",
+        author = "NewUser123",
+        content = "I'm new to game development and want to learn Love2D. Any tips for beginners?",
+        replies = 15,
+        timestamp = "2024-01-14"
+      },
+      {
+        id = 3,
+        title = "Showcase: My first game made with Love2D",
+        author = "GameDevPro",
+        content = "After 3 months of learning, I've completed my first game. Check it out!",
+        replies = 42,
+        timestamp = "2024-01-13"
+      }
+    }
+  },
+  ["http://home.com"] = {
+    type = "functional",
+    functionalType = "home",
+    title = "Browser Home",
+    description = "Your personalized homepage",
+    quickLinks = {
+      { name = "Search", url = "http://search.com" },
+      { name = "Reddit", url = "http://reddit.com" },
+      { name = "Forum", url = "http://forum.com" },
+      { name = "Google", url = "http://google.com" },
+      { name = "GitHub", url = "http://github.com" }
+    },
+    recentSites = {
+      "http://google.com",
+      "http://reddit.com",
+      "http://github.com",
+      "http://stackoverflow.com"
     }
   }
 }
@@ -258,8 +363,9 @@ end
 --------------------------------------------------------------------------------
 function BrowserApp.new()
   local self = setmetatable({}, BrowserApp)
-  self.url = "http://google.com"
-  self.htmlContent = websiteDatabase[self.url] or {
+  self.url = "http://home.com"  -- Start with functional home page
+  self.websiteData = websiteDatabase[self.url] or {
+      type = "normal",
       tag = "div",
       children = { { tag = "p", _text = "404 Page Not Found: " .. self.url } }
   }
@@ -286,7 +392,316 @@ function BrowserApp.new()
   self.activeInput = nil
   self.windowWidth = 800
   self.windowHeight = 600
+  
+  -- Functional website state
+  self.searchQuery = ""
+  self.activePost = nil
+  self.functionalInput = ""
+  
   return self
+end
+
+--------------------------------------------------------------------------------
+-- Functional Website Rendering
+--------------------------------------------------------------------------------
+function BrowserApp:renderFunctionalWebsite(x, y, width, height)
+  local website = self.websiteData
+  local currentY = y
+  
+  if website.functionalType == "home" then
+    currentY = self:renderHomePage(x, currentY, width)
+  elseif website.functionalType == "search" then
+    currentY = self:renderSearchPage(x, currentY, width)
+  elseif website.functionalType == "forum" then
+    currentY = self:renderForumPage(x, currentY, width)
+  end
+  
+  return currentY
+end
+
+function BrowserApp:renderHomePage(x, y, width)
+  local website = self.websiteData
+  local currentY = y
+  
+  -- Header
+  love.graphics.setColor(0.2, 0.4, 0.8)
+  love.graphics.rectangle("fill", x, currentY, width, 80)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.setFont(self.h1Font)
+  love.graphics.printf(website.title, x, currentY + 20, width, "center")
+  love.graphics.setFont(self.defaultFont)
+  love.graphics.printf(website.description, x, currentY + 55, width, "center")
+  currentY = currentY + 100
+  
+  -- Quick Links
+  love.graphics.setColor(0.3, 0.3, 0.3)
+  love.graphics.setFont(self.h3Font)
+  love.graphics.printf("Quick Links", x, currentY, width, "center")
+  currentY = currentY + 40
+  
+  love.graphics.setFont(self.defaultFont)
+  local linkWidth = 120
+  local linkHeight = 40
+  local linksPerRow = math.floor(width / (linkWidth + 20))
+  local linkX = x + (width - (linksPerRow * (linkWidth + 20))) / 2
+  
+  for i, link in ipairs(website.quickLinks) do
+    local row = math.floor((i - 1) / linksPerRow)
+    local col = (i - 1) % linksPerRow
+    local linkXPos = linkX + col * (linkWidth + 20)
+    local linkYPos = currentY + row * (linkHeight + 15)
+    
+    -- Draw link button
+    love.graphics.setColor(0.1, 0.5, 0.9)
+    love.graphics.rectangle("fill", linkXPos, linkYPos, linkWidth, linkHeight, 8, 8)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf(link.name, linkXPos, linkYPos + 12, linkWidth, "center")
+    
+    -- Register clickable region
+    table.insert(self.buttonRegions, {
+      x = linkXPos,
+      y = linkYPos - self.scrollOffset,
+      width = linkWidth,
+      height = linkHeight,
+      onClick = function()
+        self:loadURL(link.url)
+      end
+    })
+  end
+  
+  currentY = currentY + math.ceil(#website.quickLinks / linksPerRow) * (linkHeight + 15) + 30
+  
+  -- Recent Sites
+  love.graphics.setColor(0.3, 0.3, 0.3)
+  love.graphics.setFont(self.h3Font)
+  love.graphics.printf("Recent Sites", x, currentY, width, "center")
+  currentY = currentY + 40
+  
+  love.graphics.setFont(self.defaultFont)
+  for i, site in ipairs(website.recentSites) do
+    love.graphics.setColor(0.7, 0.7, 0.7)
+    love.graphics.rectangle("fill", x + 20, currentY, width - 40, 30, 5, 5)
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.printf(site, x + 30, currentY + 8, width - 60, "left")
+    
+    table.insert(self.buttonRegions, {
+      x = x + 20,
+      y = currentY - self.scrollOffset,
+      width = width - 40,
+      height = 30,
+      onClick = function()
+        self:loadURL(site)
+      end
+    })
+    
+    currentY = currentY + 40
+  end
+  
+  return currentY
+end
+
+function BrowserApp:renderSearchPage(x, y, width)
+  local website = self.websiteData
+  local currentY = y
+  
+  -- Header
+  love.graphics.setColor(0.1, 0.6, 0.3)
+  love.graphics.rectangle("fill", x, currentY, width, 80)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.setFont(self.h1Font)
+  love.graphics.printf(website.title, x, currentY + 20, width, "center")
+  love.graphics.setFont(self.defaultFont)
+  love.graphics.printf(website.description, x, currentY + 55, width, "center")
+  currentY = currentY + 100
+  
+  -- Search Box
+  local searchWidth = 600
+  local searchX = x + (width - searchWidth) / 2
+  
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.rectangle("fill", searchX, currentY, searchWidth, 40, 5, 5)
+  love.graphics.setColor(0.7, 0.7, 0.7)
+  love.graphics.rectangle("line", searchX, currentY, searchWidth, 40, 5, 5)
+  
+  love.graphics.setColor(0.3, 0.3, 0.3)
+  if self.functionalInput == "" then
+    love.graphics.printf("Enter your search query...", searchX + 10, currentY + 12, searchWidth - 20, "left")
+  else
+    love.graphics.printf(self.functionalInput, searchX + 10, currentY + 12, searchWidth - 20, "left")
+  end
+  
+  -- Search button
+  love.graphics.setColor(0.1, 0.5, 0.9)
+  love.graphics.rectangle("fill", searchX + searchWidth + 10, currentY, 80, 40, 5, 5)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.printf("Search", searchX + searchWidth + 10, currentY + 12, 80, "center")
+  
+  table.insert(self.buttonRegions, {
+    x = searchX,
+    y = currentY - self.scrollOffset,
+    width = searchWidth,
+    height = 40,
+    onClick = function()
+      self.activeInput = { 
+        element = { _attr = { value = self.functionalInput } }, 
+        cursor = #self.functionalInput + 1,
+        cursorTimer = 0,
+        cursorVisible = true,
+        functional = true
+      }
+    end
+  })
+  
+  table.insert(self.buttonRegions, {
+    x = searchX + searchWidth + 10,
+    y = currentY - self.scrollOffset,
+    width = 80,
+    height = 40,
+    onClick = function()
+      self.searchQuery = self.functionalInput
+    end
+  })
+  
+  currentY = currentY + 60
+  
+  -- Search Results
+  if self.searchQuery ~= "" then
+    love.graphics.setColor(0.3, 0.3, 0.3)
+    love.graphics.setFont(self.h3Font)
+    love.graphics.printf('Search results for: "' .. self.searchQuery .. '"', x, currentY, width, "center")
+    currentY = currentY + 40
+    
+    love.graphics.setFont(self.defaultFont)
+    for i, result in ipairs(website.searchResults) do
+      love.graphics.setColor(0.9, 0.9, 0.9)
+      love.graphics.rectangle("fill", x + 10, currentY, width - 20, 80, 5, 5)
+      love.graphics.setColor(0.1, 0.3, 0.8)
+      love.graphics.printf(result.title, x + 20, currentY + 10, width - 40, "left")
+      love.graphics.setColor(0.1, 0.5, 0.1)
+      love.graphics.printf(result.url, x + 20, currentY + 30, width - 40, "left")
+      love.graphics.setColor(0.3, 0.3, 0.3)
+      love.graphics.printf(result.description, x + 20, currentY + 50, width - 40, "left")
+      
+      table.insert(self.buttonRegions, {
+        x = x + 10,
+        y = currentY - self.scrollOffset,
+        width = width - 20,
+        height = 80,
+        onClick = function()
+          self:loadURL(result.url)
+        end
+      })
+      
+      currentY = currentY + 100
+    end
+  end
+  
+  return currentY
+end
+
+function BrowserApp:renderForumPage(x, y, width)
+  local website = self.websiteData
+  local currentY = y
+  
+  -- Header
+  if website.title == "Reddit" then
+    love.graphics.setColor(1, 0.27, 0)  -- Reddit orange
+  else
+    love.graphics.setColor(0.2, 0.4, 0.7)  -- Default blue
+  end
+  love.graphics.rectangle("fill", x, currentY, width, 60)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.setFont(self.h1Font)
+  love.graphics.printf(website.title, x, currentY + 15, width, "center")
+  currentY = currentY + 80
+  
+  -- Description
+  love.graphics.setColor(0.3, 0.3, 0.3)
+  love.graphics.setFont(self.defaultFont)
+  love.graphics.printf(website.description, x, currentY, width, "center")
+  currentY = currentY + 30
+  
+  -- Subreddits (if Reddit)
+  if website.title == "Reddit" and website.subreddits then
+    love.graphics.setColor(0.8, 0.8, 0.8)
+    for i, sub in ipairs(website.subreddits) do
+      local subWidth = love.graphics.getFont():getWidth(sub) + 20
+      local subX = x + 10 + ((i - 1) * (subWidth + 10))
+      
+      if subX + subWidth < width then
+        love.graphics.setColor(0.9, 0.9, 0.9)
+        love.graphics.rectangle("fill", subX, currentY, subWidth, 25, 3, 3)
+        love.graphics.setColor(0.3, 0.3, 0.3)
+        love.graphics.printf(sub, subX, currentY + 5, subWidth, "center")
+        
+        table.insert(self.buttonRegions, {
+          x = subX,
+          y = currentY - self.scrollOffset,
+          width = subWidth,
+          height = 25,
+          onClick = function()
+            -- In a real implementation, this would load the subreddit
+            self:showMessage("Loading " .. sub .. "...")
+          end
+        })
+      end
+    end
+    currentY = currentY + 40
+  end
+  
+  -- Posts
+  for i, post in ipairs(website.posts) do
+    -- Post container
+    love.graphics.setColor(0.95, 0.95, 0.95)
+    love.graphics.rectangle("fill", x + 10, currentY, width - 20, 120, 5, 5)
+    love.graphics.setColor(0.8, 0.8, 0.8)
+    love.graphics.rectangle("line", x + 10, currentY, width - 20, 120, 5, 5)
+    
+    -- Voting buttons (left side)
+    love.graphics.setColor(0.7, 0.7, 0.7)
+    love.graphics.rectangle("fill", x + 15, currentY + 10, 30, 80, 3, 3)
+    love.graphics.setColor(0.3, 0.3, 0.3)
+    love.graphics.printf("▲", x + 15, currentY + 15, 30, "center")
+    love.graphics.printf(tostring(post.upvotes), x + 15, currentY + 45, 30, "center")
+    love.graphics.printf("▼", x + 15, currentY + 70, 30, "center")
+    
+    -- Post content
+    local contentX = x + 55
+    local contentWidth = width - 75
+    
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.setFont(self.h4Font)
+    love.graphics.printf(post.title, contentX, currentY + 10, contentWidth, "left")
+    
+    love.graphics.setFont(self.defaultFont)
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf("by " .. post.author .. " • " .. post.timestamp, contentX, currentY + 40, contentWidth, "left")
+    
+    if post.content then
+      love.graphics.setColor(0.4, 0.4, 0.4)
+      love.graphics.printf(post.content, contentX, currentY + 60, contentWidth, "left")
+    end
+    
+    -- Comments/Replies
+    love.graphics.setColor(0.6, 0.6, 0.6)
+    local commentText = post.comments and (tostring(post.comments) .. " comments") or (tostring(post.replies) .. " replies")
+    love.graphics.printf(commentText, contentX, currentY + 90, contentWidth, "left")
+    
+    -- Make post clickable
+    table.insert(self.buttonRegions, {
+      x = x + 10,
+      y = currentY - self.scrollOffset,
+      width = width - 20,
+      height = 120,
+      onClick = function()
+        self.activePost = post
+      end
+    })
+    
+    currentY = currentY + 140
+  end
+  
+  return currentY
 end
 
 --------------------------------------------------------------------------------
@@ -439,14 +854,17 @@ function BrowserApp:renderButton(element, x, y, maxWidth)
   return btnHeight + 10
 end
 
-
 function BrowserApp:setURL(url)
   self.url = url
   self.urlCursor = #url + 1
-  self.htmlContent = websiteDatabase[url] or {
+  self.websiteData = websiteDatabase[url] or {
+      type = "normal",
       tag = "div",
       children = { { tag = "p", _text = "404 Page Not Found: " .. url } }
   }
+  self.activePost = nil
+  self.searchQuery = ""
+  self.functionalInput = ""
 end
 
 function BrowserApp:loadURL(url)
@@ -734,8 +1152,13 @@ function BrowserApp:draw(x, y, width, height)
   love.graphics.translate(0, -self.scrollOffset)
   love.graphics.setColor(0, 0, 0)
   if not self.loading then
-      local totalContentHeight = self:renderHTML(self.htmlContent, x + 10, contentY, width - 20)
-      self.maxScroll = math.max(0, totalContentHeight - (height - 50))
+      if self.websiteData.type == "functional" then
+          local totalContentHeight = self:renderFunctionalWebsite(x + 10, contentY, width - 20)
+          self.maxScroll = math.max(0, totalContentHeight - (height - 50))
+      else
+          local totalContentHeight = self:renderHTML(self.websiteData, x + 10, contentY, width - 20)
+          self.maxScroll = math.max(0, totalContentHeight - (height - 50))
+      end
   else
       love.graphics.setColor(0.5, 0.5, 0.5)
       love.graphics.printf("Loading...", x + 10, contentY + 20, width - 20, "center")
@@ -794,22 +1217,41 @@ function BrowserApp:keypressed(key)
           self.urlActive = false
       end
   elseif self.activeInput then
-      if key == "left" then
-          if self.activeInput.cursor > 1 then self.activeInput.cursor = self.activeInput.cursor - 1 end
-      elseif key == "right" then
-          local val = self.activeInput.element._attr.value or ""
-          if self.activeInput.cursor <= #val then self.activeInput.cursor = self.activeInput.cursor + 1 end
-      elseif key == "backspace" then
-          local val = self.activeInput.element._attr.value or ""
-          if self.activeInput.cursor > 1 then
-              self.activeInput.element._attr.value = val:sub(1, self.activeInput.cursor - 1) .. val:sub(self.activeInput.cursor + 1)
-              self.activeInput.cursor = self.activeInput.cursor - 1
-          end
-      elseif key == "delete" then
-          local val = self.activeInput.element._attr.value or ""
-          self.activeInput.element._attr.value = val:sub(1, self.activeInput.cursor - 1) .. val:sub(self.activeInput.cursor + 1)
-      elseif key == "return" then
-          self.activeInput = nil
+      if self.activeInput.functional then
+        -- Handle functional website input
+        if key == "left" then
+            if self.activeInput.cursor > 1 then self.activeInput.cursor = self.activeInput.cursor - 1 end
+        elseif key == "right" then
+            if self.activeInput.cursor <= #self.functionalInput then self.activeInput.cursor = self.activeInput.cursor + 1 end
+        elseif key == "backspace" then
+            if self.activeInput.cursor > 1 then
+                self.functionalInput = self.functionalInput:sub(1, self.activeInput.cursor - 1) .. self.functionalInput:sub(self.activeInput.cursor + 1)
+                self.activeInput.cursor = self.activeInput.cursor - 1
+            end
+        elseif key == "delete" then
+            self.functionalInput = self.functionalInput:sub(1, self.activeInput.cursor - 1) .. self.functionalInput:sub(self.activeInput.cursor + 1)
+        elseif key == "return" then
+            self.activeInput = nil
+        end
+      else
+        -- Handle normal website input
+        if key == "left" then
+            if self.activeInput.cursor > 1 then self.activeInput.cursor = self.activeInput.cursor - 1 end
+        elseif key == "right" then
+            local val = self.activeInput.element._attr.value or ""
+            if self.activeInput.cursor <= #val then self.activeInput.cursor = self.activeInput.cursor + 1 end
+        elseif key == "backspace" then
+            local val = self.activeInput.element._attr.value or ""
+            if self.activeInput.cursor > 1 then
+                self.activeInput.element._attr.value = val:sub(1, self.activeInput.cursor - 1) .. val:sub(self.activeInput.cursor + 1)
+                self.activeInput.cursor = self.activeInput.cursor - 1
+            end
+        elseif key == "delete" then
+            local val = self.activeInput.element._attr.value or ""
+            self.activeInput.element._attr.value = val:sub(1, self.activeInput.cursor - 1) .. val:sub(self.activeInput.cursor + 1)
+        elseif key == "return" then
+            self.activeInput = nil
+        end
       end
   else
       if key == "left" then
@@ -833,11 +1275,18 @@ function BrowserApp:textinput(text)
       self.url = before .. text .. after
       self.urlCursor = self.urlCursor + #text
   elseif self.activeInput then
-      local val = self.activeInput.element._attr.value or ""
-      local before = val:sub(1, self.activeInput.cursor - 1)
-      local after = val:sub(self.activeInput.cursor)
-      self.activeInput.element._attr.value = before .. text .. after
-      self.activeInput.cursor = self.activeInput.cursor + #text
+      if self.activeInput.functional then
+        local before = self.functionalInput:sub(1, self.activeInput.cursor - 1)
+        local after = self.functionalInput:sub(self.activeInput.cursor)
+        self.functionalInput = before .. text .. after
+        self.activeInput.cursor = self.activeInput.cursor + #text
+      else
+        local val = self.activeInput.element._attr.value or ""
+        local before = val:sub(1, self.activeInput.cursor - 1)
+        local after = val:sub(self.activeInput.cursor)
+        self.activeInput.element._attr.value = before .. text .. after
+        self.activeInput.cursor = self.activeInput.cursor + #text
+      end
   end
 end
 
@@ -875,7 +1324,8 @@ function BrowserApp:update(dt)
 end
 
 function BrowserApp:showMessage(message)
-  self.htmlContent = {
+  self.websiteData = {
+      type = "normal",
       tag = "div",
       children = {
           { tag = "h1", _text = "Message" },

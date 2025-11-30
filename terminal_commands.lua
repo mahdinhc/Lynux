@@ -28,6 +28,47 @@ local function parseArgs(input)
     return args
 end
 
+-- Color parsing function
+local function parseColor(colorStr)
+    -- Named colors
+    local colorMap = {
+        black = {0, 0, 0},
+        white = {1, 1, 1},
+        red = {1, 0, 0},
+        green = {0, 1, 0},
+        blue = {0, 0, 1},
+        yellow = {1, 1, 0},
+        cyan = {0, 1, 1},
+        magenta = {1, 0, 1},
+        gray = {0.5, 0.5, 0.5},
+        orange = {1, 0.5, 0},
+        purple = {0.5, 0, 0.5},
+        pink = {1, 0.5, 0.5},
+        brown = {0.6, 0.3, 0}
+    }
+    
+    -- Check if it's a named color
+    if colorMap[colorStr:lower()] then
+        return colorMap[colorStr:lower()]
+    end
+    
+    -- Check if it's a hex color (#RRGGBB)
+    if colorStr:match("^#%x%x%x%x%x%x$") then
+        local r = tonumber(colorStr:sub(2, 3), 16) / 255
+        local g = tonumber(colorStr:sub(4, 5), 16) / 255
+        local b = tonumber(colorStr:sub(6, 7), 16) / 255
+        return {r, g, b}
+    end
+    
+    -- Check if it's RGB values (comma separated)
+    local r, g, b = colorStr:match("^(%d+%.?%d*),(%d+%.?%d*),(%d+%.?%d*)$")
+    if r and g and b then
+        return {tonumber(r), tonumber(g), tonumber(b)}
+    end
+    
+    return nil
+end
+
 -- Helper: print output to the terminal.
 function TerminalCommands.print(self, text)
     table.insert(self.rawLines, text)
@@ -103,8 +144,12 @@ end
 -- Inline substitutions table: all built-in command functions.
 local inlineSubstitutions = {
     help = function(self, ...)
-        self:print("Available commands:")
-        self:print("  help, clear, echo, set, vars, ls, pwd, cd, mkdir, touch, rm, rmall, mv, cat, tree, date, time, version, uname")
+        self:print("+ Available Commands ---------------------------------------------+")
+        self:print("| Basic: help, clear, echo, set, vars, ls, pwd, cd, mkdir         |")
+        self:print("| Files: touch, rm, rmall, mv, cat, tree                          |")
+        self:print("| System: date, time, version, uname, whoami                      |")
+        self:print("| New: color, title, history, clearh, theme, calc, uptime         |")
+        self:print("+-----------------------------------------------------------------+")
     end,
     clear = function(self, ...)
         self.rawLines = {}
@@ -127,23 +172,27 @@ local inlineSubstitutions = {
         local list = {}
         for name, node in pairs(self.cwd.children or {}) do
             if node.type == "directory" then
-                table.insert(list, name .. "/")
+                table.insert(list, name)  -- Yellow for directories
             else
                 table.insert(list, name)
             end
         end
         if #list == 0 then return "Directory is empty." end
-        return table.concat(list, " ")
+        return table.concat(list, "  ")
     end,
     pwd = function(self, ...)
         return filesystem.getPath(self.cwd)
     end,
     cd = function(self, target)
-        if not target then return "Usage: cd <directory>" end
+        if not target then 
+            self.cwd = self.filesystem
+            return "Changed to root directory"
+        end
         local node, err = navigatePath(self.cwd, target)
         if node then
             if node.type == "directory" then
                 self.cwd = node
+                return "Changed to: " .. filesystem.getPath(node)
             else
                 return "Not a directory: " .. target
             end
@@ -161,6 +210,7 @@ local inlineSubstitutions = {
             local newdir = { name = name, type = "directory", parent = parent, children = {} }
             parent.children[name] = newdir
             filesystem.save(self.filesystem)
+            return "Directory created: " .. dirname
         end
     end,
     touch = function(self, filename, ...)
@@ -174,6 +224,7 @@ local inlineSubstitutions = {
             local newfile = { name = name, type = "file", content = content }
             parent.children[name] = newfile
             filesystem.save(self.filesystem)
+            return "File created: " .. filename
         end
     end,
     rm = function(self, path)
@@ -188,10 +239,12 @@ local inlineSubstitutions = {
             else
                 parent.children[name] = nil
                 filesystem.save(self.filesystem)
+                return "Removed directory: " .. path
             end
         else
             parent.children[name] = nil
             filesystem.save(self.filesystem)
+            return "Removed file: " .. path
         end
     end,
     rmall = function(self, path)
@@ -242,11 +295,135 @@ local inlineSubstitutions = {
         return os.date("%H:%M:%S")
     end,
     version = function(self, ...)
-        return "Terminal version 1.0"
+        return "Lynux Terminal v2.0"
     end,
     uname = function(self, ...)
-        return "user@root"
+        return "user@lynux"
     end,
+    whoami = function(self, ...)
+        return "user"
+    end,
+    -- New enhanced commands
+    color = function(self, ...)
+        local args = {...}
+        if #args == 0 then
+            return "Usage: color <element> <color> OR color preset <preset_name>"
+        end
+        
+        if args[1] == "preset" then
+            local presets = {
+                classic = {
+                    background = {0.05, 0.05, 0.1},
+                    text = {0.8, 1, 0.8},
+                    prompt = {0.2, 0.8, 1}
+                },
+                dark = {
+                    background = {0.1, 0.1, 0.1},
+                    text = {0.9, 0.9, 0.9},
+                    prompt = {0, 0.8, 0}
+                },
+                blue = {
+                    background = {0, 0.1, 0.2},
+                    text = {0.7, 0.9, 1},
+                    prompt = {0.2, 0.6, 1}
+                },
+                green = {
+                    background = {0, 0.1, 0},
+                    text = {0.6, 1, 0.6},
+                    prompt = {0.2, 1, 0.2}
+                },
+                amber = {
+                    background = {0.1, 0.08, 0},
+                    text = {1, 0.8, 0.3},
+                    prompt = {1, 0.6, 0}
+                }
+            }
+            
+            local presetName = args[2] or "classic"
+            if presets[presetName] then
+                self:setColors(presets[presetName])
+                return "Theme set to: " .. presetName
+            else
+                return "Available presets: classic, dark, blue, green, amber"
+            end
+        end
+        
+        local element = args[1]
+        local colorStr = args[2]
+        
+        if not colorStr then
+            return "Usage: color <"..table.concat({"background", "text", "prompt", "error", "success", "directory", "file"}, "|").."> <color>"
+        end
+        
+        local color = parseColor(colorStr)
+        if not color then
+            return "Invalid color. Use: color name, #RRGGBB, or r,g,b values"
+        end
+        
+        local elements = {
+            background = true, text = true, prompt = true,
+            error = true, success = true, directory = true, file = true
+        }
+        
+        if elements[element] then
+            local newColors = {[element] = color}
+            self:setColors(newColors)
+            return "Set " .. element .. " color to " .. colorStr
+        else
+            return "Invalid element. Use: background, text, prompt, error, success, directory, file"
+        end
+    end,
+    title = function(self, ...)
+        local newTitle = table.concat({...}, " ")
+        if #newTitle == 0 then
+            return "Current title: " .. self.title
+        end
+        self:setTitle(newTitle)
+        return "Terminal title set to: " .. newTitle
+    end,
+    history = function(self, ...)
+        local history = self:getCommandHistory()
+        if #history == 0 then
+            return "No command history"
+        end
+        
+        local result = {"Command History:"}
+        for i, cmd in ipairs(history) do
+            table.insert(result, string.format("  %3d: %s", i, cmd))
+        end
+        return table.concat(result, "\n")
+    end,
+    clearh = function(self, ...)
+        self:clearHistory()
+        return "Command history cleared"
+    end,
+    theme = function(self, ...)
+        return "Use 'color preset <name>' to change themes. Available: classic, dark, blue, green, amber"
+    end,
+    calc = function(self, ...)
+        local expr = table.concat({...}, " ")
+        if #expr == 0 then
+            return "Usage: calc <expression>"
+        end
+        
+        -- Safe evaluation of simple math expressions
+        local safeExpr = expr:gsub("[^%d%+%-%*%/%.%(%))%s]", "")
+        local func, err = load("return " .. safeExpr)
+        if func then
+            local success, result = pcall(func)
+            if success then
+                return expr .. " = " .. tostring(result)
+            end
+        end
+        return "Invalid expression: " .. expr
+    end,
+    uptime = function(self, ...)
+        local time = love.timer.getTime()
+        local hours = math.floor(time / 3600)
+        local minutes = math.floor((time % 3600) / 60)
+        local seconds = math.floor(time % 60)
+        return string.format("System uptime: %02d:%02d:%02d", hours, minutes, seconds)
+    end
 }
 
 -- Process a command string. 'self' is the Terminal instance.
@@ -267,7 +444,7 @@ function TerminalCommands.process(self, command)
                     token = token:gsub('^"(.*)"$', "%1")
                     table.insert(parsedArgs, token)
                 end
-                args[i] = inlineSubstitutions[funcName](self, unpack(parsedArgs))
+                args[i] = inlineSubstitutions[funcName](self, unpack(parsedArgs)) or ""
             else
                 args[i] = ""
             end
@@ -276,7 +453,7 @@ function TerminalCommands.process(self, command)
             if self.variables[varName] then
                 args[i] = self.variables[varName]
             elseif inlineSubstitutions[varName] then
-                args[i] = inlineSubstitutions[varName](self)
+                args[i] = inlineSubstitutions[varName](self) or ""
             else
                 args[i] = ""
             end
@@ -286,7 +463,9 @@ function TerminalCommands.process(self, command)
     local cmd = args[1]
     if inlineSubstitutions[cmd] then
         local result = inlineSubstitutions[cmd](self, unpack(args, 2))
-        if result then self:print(result) end
+        if result then 
+            self:print(result) 
+        end
     else
         if command:sub(-3) == ".sh" then
             local parent, name = resolveParentAndName(self.cwd, command)

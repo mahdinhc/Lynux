@@ -742,18 +742,18 @@ function toggleApp(app)
         setFocus(found)
     else
         -- For TextEditor, check if an instance already exists:
-        if (app.name == "TextEditor" or app.name == "ImageViewer" or app.name == "ObjViewer" ) and app.instance then
-            -- Do not create a new instance; just open the existing one.
-            local screenWidth = love.graphics.getWidth()
-            local screenHeight = love.graphics.getHeight()
-            local windowWidth = 500
-            local windowHeight = 300
-            local x = (screenWidth - windowWidth) / 2
-            local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
-            local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
-            table.insert(openApps, newWindow)
-            setFocus(newWindow)
-        else
+		if (app.name == "TextEditor" or app.name == "ImageViewer" or app.name == "ObjViewer" or app.name == "Files") and app.instance then
+			-- re-open using existing instance instead of creating new
+			local screenWidth = love.graphics.getWidth()
+			local screenHeight = love.graphics.getHeight()
+			local windowWidth = 500
+			local windowHeight = 300
+			local x = (screenWidth - windowWidth) / 2
+			local y = topBarHeight + ((screenHeight - topBarHeight - bottomBarHeight) - windowHeight) / 2
+			local newWindow = { app = app, instance = app.instance, x = x, y = y, width = windowWidth, height = windowHeight, minimized = false }
+			table.insert(openApps, newWindow)
+			setFocus(newWindow)
+		else
             app.instance = app.module.new()
             local screenWidth = love.graphics.getWidth()
             local screenHeight = love.graphics.getHeight()
